@@ -34,7 +34,4 @@ struct command
     struct command *subshell_command;
   } u;
 
-  //pointers to next and previous node in linked list  //TODO: check syntax
-  struct command* next_command;
-  struct command* prev_command;
 };

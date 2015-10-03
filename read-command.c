@@ -44,14 +44,14 @@ make_command_stream(int(*get_next_byte) (void *),
 	{
 		next = get_next_byte(get_next_byte_argument); 
 
-		/* //check for comments and remove them
+		 //check for comments and remove them
 		if ((next == '#')   //TODO: what about ordinary token right before # ????
 		{
 			do
 			{
-				next = get_next_byte(get_next_byte_argument); // should these func names be different
+				next = get_next_byte(get_next_byte_argument); 
 			} while ((next > -1) && (next != EOF) && (next != '\n');
-		}*/
+		}
 
 
 		//buffer loading and resizing

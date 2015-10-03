@@ -8,20 +8,43 @@
 #include <error.h>
 #include <stdbool.h>
 #include <stdio.h> //for EOF
+#include <string.h>
 
 int (*getbyte) (void*);
 void* getbyte_arg;
 
-struct command_stream
+struct command_stream_t
 {
-	//root of the tree
-	command_t root;
+	char a[1000000]; //File TODO: figure out how big to make this
+	int index; 
 };
 
-enum command_type cmdtype(char* buffer)
+command_t
+parse(string input)
 {
+	/*pseudo-code
+	if string ends with a paired bracket
+		cmd type = subshell
+		remove bracket < 1 from string
+		cmd.u.subshell = parse(string)
+		return cmd
+	elif no operator and no bracket in string
+		cmd type = simple
+			cmd.u.word** ->
+			return cmd
 
+	else
+		find the least precende operator (not in a paired bracket) in string
+		cmd type = ";" sequence-command
+					"&&" and-command
+					"||" or-command
+					"|" pipe command
+		cmd.u.command[0] = parse(left half of the string)
+		cmd.u.command[1] = parse(right half of the string)
+		return command
+	*/
 
+		//once we know if simple or subshell consider redirection -- also figure out where to do this
 }
 
 command_stream_t

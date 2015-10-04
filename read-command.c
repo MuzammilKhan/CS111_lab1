@@ -76,7 +76,7 @@ parse(string input)
 	else if(!containts_operator(input))
 	{
 		cmd->type = SIMPLE_COMMAND;
-		//cmd->u.word = words?
+		//cmd->u.word = words? delimiter is space.
 		return cmd;
 	}
 	else
@@ -137,7 +137,6 @@ make_command_stream(int(*get_next_byte) (void *),
 			//adjust buffer size
 			if(count == buffer_size)
 			{
-				buffer_size = buffer_size * 2;
 				buffer = checked_grow_alloc(buffer, &buffer_size);
 			}
 		}

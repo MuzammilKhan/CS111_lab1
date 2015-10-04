@@ -15,26 +15,75 @@ void* getbyte_arg;
 
 struct command_stream_t
 {
-	char a[1000000]; //File TODO: figure out how big to make this
+	char a[1000000]; //File.  TODO: figure out how big to make this
 	int index; 
 };
+
+
+void strip_first_and_last(string &input) //strips the first and last char from string
+{
+	int limit = strlen(input);
+	if(limit <= 2)
+		{input = ""; return;}
+
+	for(int i = 0; i < len; i++) //remove first char	
+	{
+		string[i] = string[i+1];
+	}
+
+	string[limit-2] = '\0'; //replaces last char
+
+	return;
+}
+
+bool is_operator(char c) // check if the character is an operator
+{
+switch (c)
+case ';':
+case '|':
+case '$': // $ == ||
+case '*': // * == &&
+return true;
+default:
+return false;
+}
+
+bool contains_operator(string input) //check if input contains an operator
+{
+	int limit = strlen(input);
+	for(int i = 0; i <= len; i++) //remove first char	
+	{
+		if(is_operator)
+		{return true;}
+	}
+	return false; //no operator found
+}
 
 command_t
 parse(string input)
 {
-	/*pseudo-code
-	if string ends with a paired bracket
-		cmd type = subshell
-		remove bracket < 1 from string
-		cmd.u.subshell = parse(string)
-		return cmd
-	elif no operator and no bracket in string
-		cmd type = simple
-			cmd.u.word** ->
-			return cmd
+	command_t cmd = checked_malloc(sizeof(command));
 
+	//Question: does the other pointers in the command struct have to be intilalized to NULL or are they already NULL?
+
+	if(input[strleng(input)-1] == ')') //subshell case
+	{ 
+		cmd->type = SUBSHELL_COMMAND;
+		strip_first_and_last(input); //removes brackets
+		cmd->u.subshell = parse(input);
+		return cmd;
+	}
+	else if(!containts_operator(input))
+	{
+		cmd->type = SIMPLE_COMMAND;
+		//cmd->u.word = words?
+		return cmd;
+	}
 	else
-		find the least precende operator (not in a paired bracket) in string
+	{
+
+		/*
+				find the least precende operator (not in a paired bracket) in string //TODO: possibly write a function to do this?
 		cmd type = ";" sequence-command
 					"&&" and-command
 					"||" or-command
@@ -43,8 +92,9 @@ parse(string input)
 		cmd.u.command[1] = parse(right half of the string)
 		return command
 	*/
+	}
 
-		//once we know if simple or subshell consider redirection -- also figure out where to do this
+		//TODO:once we know if simple or subshell consider redirection -- also figure out where to do this
 }
 
 command_stream_t
@@ -68,7 +118,7 @@ make_command_stream(int(*get_next_byte) (void *),
 		next = get_next_byte(get_next_byte_argument); 
 
 		 //check for comments and remove them
-		if ((next == '#')   //TODO: what about ordinary token right before # ????
+		if ((next == '#')   //TODO: what about ordinary token right before # ???? also check if this is correct
 		{
 			do
 			{
@@ -94,11 +144,13 @@ make_command_stream(int(*get_next_byte) (void *),
 	} while (next > -1);
 
 
+	//run parser on buffer and create command stream
+
 	//TODO: REST
 
 	free(buffer);
 
-	//TODO: return something
+	//TODO: return command stream
 }
 
 command_t

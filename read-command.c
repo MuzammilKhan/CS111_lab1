@@ -59,12 +59,57 @@ bool contains_operator(string input) //check if input contains an operator
 	return false; //no operator found
 }
 
+char**  make_word_stream(string input) //make array of words  //TODO: check and test this
+{
+	int stream_size = 100 * sizeof(char*);
+	int counter = 0;
+	int word_count = 0;
+	char** word_stream = checked_malloc(stream_size);
+
+    char* ptr = &input;
+
+    while(ptr != NULL)
+    {
+    	int letter_count = 0;
+    	int max_word_size = 16;
+    	char* word = (char *) checked_malloc(max_word_size);
+
+    	while(ptr != ' ' && ptr != NULL) //make word
+    	{
+    		if(letter_count == max_word_size)
+    		{
+    			word = checked_grow_alloc(word, &max_word_size);
+    		}
+    		word[letter_count] = input[count];
+    		letter_count++;
+    		counter++;
+    		ptr++;
+    	}
+    	word[letter_count] = '\0'; //insert zero byte at end of word
+
+    	if(word_count == stream_size) 
+    	{
+    		word_stream = checked_grow_alloc(word_stream, &stream_size);
+    	}
+    	
+    	word_stream[word_count] = word;
+    	word_count++;
+    	if(ptr != NULL)
+    		{
+    			ptr++;
+    		}
+
+    }
+
+    return word_stream;
+}
+
 command_t
 parse(string input)
 {
 	command_t cmd = checked_malloc(sizeof(command));
 
-	//Question: does the other pointers in the command struct have to be intilalized to NULL or are they already NULL?
+	//TODO: set other data members to null
 
 	if(input[strleng(input)-1] == ')') //subshell case
 	{ 
@@ -76,7 +121,7 @@ parse(string input)
 	else if(!containts_operator(input))
 	{
 		cmd->type = SIMPLE_COMMAND;
-		//cmd->u.word = words? delimiter is space.
+		cmd->u.word = make_word_stream(input);
 		return cmd;
 	}
 	else

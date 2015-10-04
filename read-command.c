@@ -143,6 +143,32 @@ make_command_stream(int(*get_next_byte) (void *),
 		}
 	} while (next > -1);
 
+	//check for bad characters: any other than a-zA-Z ! % + , - . / : @ ^ _  ; | && || ( ) < >                                                           
+        size_t index = 0;
+        int lineCount = 0;
+        while (index < count) {
+            if ( (buffer[index] >= 65 && buffer[index] <= 90)           //check for A-Z                                                                      
+                 || (buffer[index] >= 97 && buffer[index] <= 122)       //check for a-z                                                                      
+                 || (buffer[index] >= 48 && buffer[index] <= 57)        //check for 0-9                                                                      
+                 || buffer[index] == '!' || buffer[index] == '%' || buffer[index] == '+'
+                 || buffer[index] == ',' || buffer[index] == '-' || buffer[index] == '.'
+                 || buffer[index] == '/' || buffer[index] == ':' || buffer[index] == '@'
+                 || buffer[index] == '^' || buffer[index] == '_' || buffer[index] == ';'
+                 || buffer[index] == '|' || buffer[index] == '&' || buffer[index] == '('
+                 || buffer[index] == ')' || buffer[index] == '<' || buffer[index] == '>'
+                 || buffer[index] == ' ' || buffer[index] == '\t'){
+                 ; //do nothing                                                                                                                              
+            }
+            else if ( buffer[index] == '\n' ) {
+                 lineCount++;   //keep track of line number to return proper errors                                                                          
+            }
+            else {
+                 fprintf(stderr, "%i: Invalid character\n", lineCount); //invalid character, return line number of error                                     
+                 //return NULL;                                                                                                                              
+            }
+            index++;    //remember to increase index                                                                                                         
+        }
+
 
 	//run parser on buffer and create command stream
 

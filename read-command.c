@@ -156,14 +156,26 @@ make_command_stream(int(*get_next_byte) (void *),
 	size_t buffer_size = 1024;
 	char* buffer = checked_malloc(buffer_size);
 	char next;
+	char prev;
+	size_t line_count = 0;
 
 	//create and load buffer
 	do
 	{
-		next = get_next_byte(get_next_byte_argument); 
+		next = get_next_byte(get_next_byte_argument);
+		
+		//convert && to * and || to $
+		if (count >= 1 && prev == '&' && next == '&') {
+			count--;	//decrease count since converting from two-char to one char
+			next = '*';
+		} 
+		else if (count >= 1 && prev == '|' && next == '|') {
+			count--;
+			next = '$';
+		}
 
 		 //check for comments and remove them
-		if ((next == '#')   //TODO: what about ordinary token right before # ???? also check if this is correct
+		if ((next == '#')   //TODO: what about ordinary token right before # ????
 		{
 			do
 			{
@@ -171,10 +183,15 @@ make_command_stream(int(*get_next_byte) (void *),
 			} while ((next > -1) && (next != EOF) && (next != '\n');
 		}
 
-
 		//buffer loading and resizing
 		if(next > -1)
 		{
+			if ( isInvalidChar(next)) {		//check for bad characters: any other than a-zA-Z0-9 ! % + , - . / : @ ^ _  ; | && || ( ) < >
+				fprintf(stderr, "%i: Invalid character\n", line_count);	//invalid character, return line number of error
+			}
+			if ( next == '\n')
+				line_count++;	//keep track of line number to return proper errors
+			
 			//load buffer
 			buffer[count] = next;
 			count++;
@@ -185,42 +202,21 @@ make_command_stream(int(*get_next_byte) (void *),
 				buffer = checked_grow_alloc(buffer, &buffer_size);
 			}
 		}
+		
+		prev = next;
 	} while (next > -1);
 
-	//check for bad characters: any other than a-zA-Z ! % + , - . / : @ ^ _  ; | && || ( ) < >                                                           
-        size_t index = 0;
-        int lineCount = 0;
-        while (index < count) {
-            if ( (buffer[index] >= 65 && buffer[index] <= 90)           //check for A-Z                                                                      
-                 || (buffer[index] >= 97 && buffer[index] <= 122)       //check for a-z                                                                      
-                 || (buffer[index] >= 48 && buffer[index] <= 57)        //check for 0-9                                                                      
-                 || buffer[index] == '!' || buffer[index] == '%' || buffer[index] == '+'
-                 || buffer[index] == ',' || buffer[index] == '-' || buffer[index] == '.'
-                 || buffer[index] == '/' || buffer[index] == ':' || buffer[index] == '@'
-                 || buffer[index] == '^' || buffer[index] == '_' || buffer[index] == ';'
-                 || buffer[index] == '|' || buffer[index] == '&' || buffer[index] == '('
-                 || buffer[index] == ')' || buffer[index] == '<' || buffer[index] == '>'
-                 || buffer[index] == ' ' || buffer[index] == '\t'){
-                 ; //do nothing                                                                                                                              
-            }
-            else if ( buffer[index] == '\n' ) {
-                 lineCount++;   //keep track of line number to return proper errors                                                                          
-            }
-            else {
-                 fprintf(stderr, "%i: Invalid character\n", lineCount); //invalid character, return line number of error                                     
-                 //return NULL;                                                                                                                              
-            }
-            index++;    //remember to increase index                                                                                                         
-        }
-
-
-	//run parser on buffer and create command stream
+	struct command_stream* resultStream;
+	resultStream->a = buffer;
+	resultStream->index = count;
 
 	//TODO: REST
 
 	free(buffer);
+	
+	return resultStream;
 
-	//TODO: return command stream
+	//TODO: return something
 }
 
 command_t

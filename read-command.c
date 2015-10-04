@@ -109,34 +109,109 @@ parse(string input)
 {
 	command_t cmd = checked_malloc(sizeof(command));
 
-	//TODO: set other data members to null
-
-	if(input[strleng(input)-1] == ')') //subshell case
+	
+	if(input[strlen(input)-1] == ')') //subshell case
 	{ 
+		//TODO: set input and output
 		cmd->type = SUBSHELL_COMMAND;
+		cmd->status = -1;
 		strip_first_and_last(input); //removes brackets
 		cmd->u.subshell = parse(input);
 		return cmd;
 	}
-	else if(!containts_operator(input))
+	else if(!contains_operator(input))
 	{
+		//TODO: set input and output
 		cmd->type = SIMPLE_COMMAND;
+		cmd->status = -1;
 		cmd->u.word = make_word_stream(input);
 		return cmd;
 	}
 	else
 	{
+		char operator;
+		char current_char;
+		int index = 0;
+		int open_bracket_count = 0;
+		int closed_bracket_count = 0;
+		
+		//find operator with greatest precedence in input
+		while(input[index] != '\0')
+		{
+			current_char = input[index];
+			if(current_char == '(')
+			{
+				open_bracket_count++;
+			}
+			else if(current_char == ')')
+			{
+				closed_bracket_count--;
+			}
+			else if(is_operator(current_char && open_bracket_count == closed_bracket_count)
+			{
+				switch(current_char):
+				{
+					case ';':
+						operator = ';';
+						break;
+					case '|':
+						break;
+					case '*': //&&
+						if(operator == '|')
+							operator = '*';
+						break;
+					case '$': //||
+						if(operator == '|')
+							operator = '$';
+						break;
+					default:
+					break;
+				}
+			}
+			index++;
+		}
 
-		/*
-				find the least precende operator (not in a paired bracket) in string //TODO: possibly write a function to do this?
-		cmd type = ";" sequence-command
-					"&&" and-command
-					"||" or-command
-					"|" pipe command
-		cmd.u.command[0] = parse(left half of the string)
-		cmd.u.command[1] = parse(right half of the string)
-		return command
-	*/
+		switch(operator)
+		{
+			case ';':
+				cmd->type = SEQUENCE_COMMAND;
+				break;
+			case '|':
+				cmd->type = PIPE_COMMAND;
+				break;
+			case '*': //&&
+				cmd->type = AND_COMMAND;
+				break;
+			case '$': //||
+				cmd->type = OR_COMMAND;
+				break;
+			default:
+			break;
+		}
+
+
+		//TODO: check if this works
+		char left_half[index];
+		strncpy(left_half, input, index - 1);
+		left_half[index] = '\0';
+
+		string left;
+		memcpy(string, left_half, index);
+		
+
+		char right_half[strlen(input) - index];
+		strncpy(right_half, input + index, strlen(input) - index);
+		right_half[strlen(input) - index] = '\0';
+
+
+		string right;
+		memcpy(string, right_half, index);
+
+		cmd->u.command[0] = parse(left);
+		cmd->u.command[1] = parse(right);
+		return cmd;
+
+
 	}
 
 		//TODO:once we know if simple or subshell consider redirection -- also figure out where to do this
@@ -227,4 +302,14 @@ read_command_stream(command_stream_t s)
 	return 0;
 
 
+}
+
+void free_command_stream() //TODO
+{
+	return;
+}
+
+void free_word_stream() //TODO
+{
+	return;
 }

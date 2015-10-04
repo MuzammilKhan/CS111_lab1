@@ -1,0 +1,7 @@
+Points to address:
+-once we know if simple or subshell consider redirection -- also figure out where to do this //in read-command.c
+-place this pseudo-code somewhere:
+if b == operator: newline = space
+elif b == "(": newline = space
+elif b == ")": newline = ";"
+else b == word: newline = ";"

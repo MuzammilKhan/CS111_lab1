@@ -24,47 +24,48 @@ void strip_first_and_last(string &input) //strips the first and last char from s
 {
 	int limit = strlen(input);
 	if(limit <= 2)
-		{input = ""; return;}
+	  {input = ""; return;}
 
-	for(int i = 0; i < len; i++) //remove first char	
+	for(int i = 0; i < limit-1; i++) //remove first char	
 	{
-		string[i] = string[i+1];
+      	  string[i] = string[i+1];  //copies up to and including ')'
 	}
 
-	string[limit-2] = '\0'; //replaces last char
+	string[limit-2] = '\0'; //replaces ')' with null byte
 
 	return;
 }
 
 bool is_operator(char c) // check if the character is an operator
 {
-switch (c)
-case ';':
-case '|':
-case '$': // $ == ||
-case '*': // * == &&
-return true;
-default:
-return false;
+  switch (c) {
+  case ';':
+  case '|':
+  case '$': // $ == ||
+  case '*': // * == &&
+    return true;
+  default:
+    return false;
+  }
 }
 
 bool contains_operator(string input) //check if input contains an operator
 {
-	int limit = strlen(input);
-	for(int i = 0; i <= len; i++) //remove first char	
-	{
-		if(is_operator)
-		{return true;}
-	}
-	return false; //no operator found
+    int limit = strlen(input);
+    for(int i = 0; i < limit; i++) //remove first char	
+    {      
+      if(is_operator(input[i]))
+	return true;
+    }
+    return false; //no operator found
 }
 
 char**  make_word_stream(string input) //make array of words  //TODO: check and test this
 {
-	int stream_size = 100 * sizeof(char*);
-	int counter = 0;
-	int word_count = 0;
-	char** word_stream = checked_malloc(stream_size);
+    int stream_size = 100 * sizeof(char*);
+    int counter = 0;
+    int word_count = 0;
+    char** word_stream = checked_malloc(stream_size);
 
     char* ptr = &input;
 
@@ -107,7 +108,7 @@ char**  make_word_stream(string input) //make array of words  //TODO: check and 
 command_t
 parse(string input)
 {
-	command_t cmd = checked_malloc(sizeof(command));
+	struct command_t cmd = checked_malloc(sizeof(struct command));
 
 	
 	if(input[strlen(input)-1] == ')') //subshell case
@@ -129,11 +130,12 @@ parse(string input)
 	}
 	else
 	{
-		char operator;
-		char current_char;
-		int index = 0;
-		int open_bracket_count = 0;
-		int closed_bracket_count = 0;
+	  char operator;
+	  int operator_found = 0;
+	  char current_char;
+	  int index = 0;
+	  int open_bracket_count = 0;
+	  int closed_bracket_count = 0;
 		
 		//find operator with greatest precedence in input
 		while(input[index] != '\0')
@@ -145,70 +147,76 @@ parse(string input)
 			}
 			else if(current_char == ')')
 			{
-				closed_bracket_count--;
+				open_bracket_count--;
 			}
-			else if(is_operator(current_char && open_bracket_count == closed_bracket_count)
+			else if(is_operator(current_char) && open_bracket_count == 0)
 			{
-				switch(current_char):
+			  operator_found = 1;  // found an operator, so we must break the while loop
+				
+				switch(current_char)
 				{
 					case ';':
-						operator = ';';
-						break;
+					  operator = ';';
+					  break;
 					case '|':
-						break;
+					  operator = '|';
+					  break;
 					case '*': //&&
-						if(operator == '|')
-							operator = '*';
-						break;
+					  operator = '*';
+					  break;
 					case '$': //||
-						if(operator == '|')
-							operator = '$';
-						break;
+					  operator = '$';
+					  break;
 					default:
-					break;
+					  operator_found = 0; // if not any of the above four operators...then not found
+					  break;
 				}
 			}
+			if (operator_found)
+			  break;    //break before index increases again. Front half is 0 to index-1, right half is index+1 to strlen(input)-1
+
 			index++;
 		}
 
 		switch(operator)
 		{
-			case ';':
-				cmd->type = SEQUENCE_COMMAND;
-				break;
+		        case ';':
+			  cmd->type = SEQUENCE_COMMAND;
+			  break;
 			case '|':
-				cmd->type = PIPE_COMMAND;
-				break;
+			  cmd->type = PIPE_COMMAND;
+			  break;
 			case '*': //&&
-				cmd->type = AND_COMMAND;
-				break;
+			  cmd->type = AND_COMMAND;
+			  break;
 			case '$': //||
-				cmd->type = OR_COMMAND;
-				break;
+			  cmd->type = OR_COMMAND;
+			  break;
 			default:
-			break;
+			  break;
 		}
 
 
 		//TODO: check if this works
-		char left_half[index];
+		char left_half[index+1]; //need enough space for null byte
 		strncpy(left_half, input, index - 1);
 		left_half[index] = '\0';
 
 		string left;
-		memcpy(string, left_half, index);
+		memcpy(left, left_half, index);
 		
 
-		char right_half[strlen(input) - index];
-		strncpy(right_half, input + index, strlen(input) - index);
+		char right_half[strlen(input) - index + 1]; //need enough space for the null byte
+		strncpy(right_half, input + index + 1, strlen(input) - index);
 		right_half[strlen(input) - index] = '\0';
 
 
 		string right;
-		memcpy(string, right_half, index);
+		memcpy(right, right_half, index);
 
 		cmd->u.command[0] = parse(left);
 		cmd->u.command[1] = parse(right);
+		cmd->status = -1;
 		return cmd;
 
 

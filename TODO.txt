@@ -9,3 +9,7 @@ if b == operator: newline = space
 elif b == "(": newline = space
 elif b == ")": newline = ";"
 else b == word: newline = ";"
+
+-'\t' is also whitespace and can seperate words. code has to be modified to accomodate  this.
+- other whitespace associated errors ex: line starting with whitespace will mess with substring detection as it stands currently.
+-I/O pointers

@@ -111,14 +111,14 @@ char**  make_word_stream(char* input) //make array of words  //TODO: check and t
     		letter_count++;
     		input_index++;
     	}
-	if (input[input_index] == ' ')
-	  input_index++;  //increase the index to skip the space
+		if (input[input_index] == ' ')
+	 	 input_index++;  //increase the index to skip the space   //TODO: adjust for '\t' and need to consider multiple whitespaces
 
-    	word[letter_count] = '\0'; //insert zero byte at end of word
+    		word[letter_count] = '\0'; //insert zero byte at end of word
 
     	if(word_count == stream_size) 
     	{
-    		word_stream = checked_grow_alloc(word_stream, &stream_size);
+    	word_stream = checked_grow_alloc(word_stream, &stream_size);
     	}
     	
     	word_stream[word_count] = word;

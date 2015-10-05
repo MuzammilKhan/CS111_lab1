@@ -128,8 +128,8 @@ parse(string input)
 	}
 	else
 	{
-	  char operator;
-	  bool operator_found = false;
+	  char operator = '\0';
+	  int operator_index = 0;
 	  char current_char;
 	  int index = 0;
 	  int open_bracket_count = 0;
@@ -148,29 +148,37 @@ parse(string input)
 			}
 			else if(is_operator(current_char) && open_bracket_count == 0)
 			{
-			  operator_found = true;  // found an operator, so we must break the while loop
-				
 				switch(current_char)
 				{
 					case ';':
-					  operator = ';';
+					  if (operator != ';') {    //if operator is not ;, since left right associativity
+					    operator = ';';
+					    operator_index = index;
+					  }
 					  break;
 					case '|':
-					  operator = '|';
+					  if (operator != ';' && operator != '|') {    //left-right associativity
+					    operator = '|';
+					    operator_index = index;
+					  }
 					  break;
 					case '*': //&&
-					  operator = '*';
+					  if (operator == '\0') {    //if operator hasn't been set yet
+					    operator = '*';
+					    operator_index = index;
+					  } 
 					  break;
 					case '$': //||
-					  operator = '$';
+					  if (operator == '\0') {    //if operator hasn't been set yet
+					    operator = '$';
+					    operator_index = index;
+					  }
 					  break;
 					default:
 					  operator_found = false; // if not any of the above four operators...then not found
 					  break;
 				}
 			}
-			if (operator_found)
-			  break;    //break before index increases again. Front half is 0 to index-1, right half is index+1 to strlen(input)-1
 
 			index++;
 		}
@@ -193,6 +201,7 @@ parse(string input)
 			  break;
 		}
 
+		index = operator_index; //operator_index is the index of the lowest precedence operator
 
 		//TODO: check if this works
 		char left_half[index+1]; //need enough space for null byte

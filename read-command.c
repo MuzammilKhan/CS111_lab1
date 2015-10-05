@@ -138,6 +138,7 @@ parse(char* input)
 	
 	if(input[strlen(input)-1] == ')') //subshell case
 	{ 
+		
 		//TODO: set input and output
 		cmd->type = SUBSHELL_COMMAND;
 		cmd->status = -1;
@@ -145,7 +146,7 @@ parse(char* input)
 		cmd->u.subshell_command = parse(input);
 		return cmd;
 	}
-	else if(!contains_operator(input))
+	else if(!contains_operator(input)) //simple command
 	{
 		//TODO: set input and output
 	  
@@ -292,6 +293,10 @@ make_command_stream(int(*get_next_byte) (void *),
 		else if (count >= 1 && prev == '|' && next == '|') {
 			count--;
 			next = '$';
+		}
+		else if (count >= 1 && prev == ';' && next == ';') {
+			count--;
+			next = '~';
 		}
 
 		 //check for comments and remove them

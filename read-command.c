@@ -20,6 +20,14 @@ struct command_stream
 	int index; 
 };
 
+char* returnInput (char* str) {
+  return NULL; //TODO
+}
+
+char* returnOutput (char* str) {
+  return NULL; //TODO
+}
+
 bool isInvalidChar (char c) {
   if ( (c >= 65 && c <= 90)     //check for A-Z
        || (c >= 97 && c <= 122) //check for a-z
@@ -117,6 +125,8 @@ char**  make_word_stream(char* input) //make array of words  //TODO: check and t
     	word_count++;
     }
 
+    word_stream[word_count] = NULL; //indicate end of array, for read_stream purposes
+
     return word_stream;
 }
 
@@ -138,7 +148,10 @@ parse(char* input)
 	else if(!contains_operator(input))
 	{
 		//TODO: set input and output
-		cmd->type = SIMPLE_COMMAND;
+	  
+	  cmd->input = NULL; //if no input, set to NULL for read_stream purposes
+	  cmd->output = NULL; //if no output, set to NULL for read_stream purposes
+ 		cmd->type = SIMPLE_COMMAND;
 		cmd->status = -1;
 		cmd->u.word = make_word_stream(input);
 		return cmd;
@@ -327,11 +340,63 @@ make_command_stream(int(*get_next_byte) (void *),
 	//TODO: return something
 }
 
+void recursive_print(command_t cmd) {
+  if (cmd->type == SIMPLE_COMMAND) {
+    char** c_ptr = cmd->u.word;
+    size_t word_index = 0;
+    bool first_word = true;
+    while (c_ptr[word_index] != NULL) {
+      if (!first_word)  //print a before every word, except for the first word
+	printf(" ");
+      first_word = false;
+      printf("%s", c_ptr[word_index]);
+      word_index++;
+    }
+
+    if (cmd->input != NULL) {
+      printf(" < %s", cmd->input);
+    }
+    if (cmd->output != NULL) {
+      printf(" > %s", cmd->output);
+    }
+
+  } 
+  else if (cmd->type == SUBSHELL_COMMAND) {
+    printf("(");
+    recursive_print(cmd->u.subshell_command);
+    printf(")");
+  }
+  else {
+    recursive_print(cmd->u.command[0]);
+
+    switch(cmd->type) {
+    case AND_COMMAND:
+      printf("&&");
+      break;
+    case SEQUENCE_COMMAND:
+      printf(";");
+      break;
+    case OR_COMMAND:
+      printf("||");
+      break;
+    case PIPE_COMMAND:
+      printf("|");
+      break;
+    default:
+      break;
+    }
+    recursive_print(cmd->u.command[1]);
+  }
+
+}
+
 command_t
 read_command_stream(command_stream_t s)
 {
+  struct command* cmd= parse(s->a);
+  recursive_print(cmd);
 	/* FIXME: Replace this with your implementation too.  */
-	error(1, 0, "command reading not yet implemented");
+	
 	return 0;
 
 

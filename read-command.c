@@ -285,6 +285,31 @@ make_command_stream(int(*get_next_byte) (void *),
 	{
 		next = get_next_byte(get_next_byte_argument);
 		
+		//check if newlines should be ; or spaces
+		// PSEUDOCODE
+		// char* prev
+		// char* cur
+		//
+		// check if first and second word have semicolons
+		//
+		// prev = first word in buffer
+		// cur = second word in buffer
+		//
+		// while cur does not have a semicolon
+		// 	prev = cur
+		// 	cur = next word
+		//
+		// if cur[0] is a semicolon
+		// 	return prev
+		// else
+		// 	read cur up till the semicolon
+		// 	return cur[0] up to the char before the semicolon
+		
+		// b ; a
+		// use b to determine if \n is ; or space
+		// if \n is ;, convert the \n to - (pseudo-semicolon)
+		// if \n is space, convert the \n to =	(psuedo-space)
+		
 		//convert && to * and || to $
 		if (count >= 1 && prev == '&' && next == '&') {
 			count--;	//decrease count since converting from two-char to one char

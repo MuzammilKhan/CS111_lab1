@@ -8,30 +8,47 @@
 #include <error.h>
 #include <stdbool.h>
 #include <stdio.h> //for EOF
+#include <stdlib.h> //for free
 #include <string.h>
 
 int (*getbyte) (void*);
 void* getbyte_arg;
 
-struct command_stream_t
+struct command_stream
 {
-	char a[1000000]; //File.  TODO: figure out how big to make this
+	char* a; //File. Make char* instead of char[] to allow assignment
 	int index; 
 };
 
+bool isInvalidChar (char c) {
+  if ( (c >= 65 && c <= 90)     //check for A-Z
+       || (c >= 97 && c <= 122) //check for a-z
+       || (c >= 48 && c < 57)   //check for 0-9
+       || c == '!' || c == '%' || c == '+'
+       || c == ',' || c == '-' || c == '.'
+       || c == '/' || c == ':' || c == '@'
+       || c == '^' || c == '_' || c == ';'
+       || c == '|' || c == '&' || c == '('
+       || c == ')' || c == '<' || c == '>' 
+       || c == ' ' || c == '\n'){
+    return false;
+  }
+  return true;
+}
 
-void strip_first_and_last(string &input) //strips the first and last char from string
+void strip_first_and_last(char* input) //strips the first and last char from string
 {
 	int limit = strlen(input);
 	if(limit <= 2)
 	  {input = ""; return;}
 
-	for(int i = 0; i < limit-1; i++) //remove first char	
+	int i = 0;
+	for( ; i < limit-1; i++) //remove first char	
 	{
-      	  string[i] = string[i+1];  //copies up to and including ')'
+      	  input[i] = input[i+1];  //copies up to and including ')'
 	}
 
-	string[limit-2] = '\0'; //replaces ')' with null byte
+	input[limit-2] = '\0'; //replaces ')' with null byte
 
 	return;
 }
@@ -49,10 +66,11 @@ bool is_operator(char c) // check if the character is an operator
   }
 }
 
-bool contains_operator(string input) //check if input contains an operator
+bool contains_operator(char* input) //check if input contains an operator
 {
     int limit = strlen(input);
-    for(int i = 0; i < limit; i++) //remove first char	
+    int i = 0;
+    for( ; i < limit; i++) //remove first char	
     {      
       if(is_operator(input[i]))
 	return true;
@@ -60,23 +78,22 @@ bool contains_operator(string input) //check if input contains an operator
     return false; //no operator found
 }
 
-char**  make_word_stream(string input) //make array of words  //TODO: check and test this
+char**  make_word_stream(char* input) //make array of words  //TODO: check and test this
 {
-    int stream_size = 100 * sizeof(char*);
-    int word_count = 0;
+    size_t stream_size = 100 * sizeof(char*);
+    size_t word_count = 0;
     char** word_stream = checked_malloc(stream_size);
 
-    char* ptr = &input;
     size_t input_length = strlen(input);
-    int input_index = 0;
+    size_t input_index = 0;
 
     while(input_index < input_length)
     {
-    	int letter_count = 0;
-    	int max_word_size = 16;
+    	size_t letter_count = 0;
+    	size_t max_word_size = 16;
     	char* word = (char *)checked_malloc(max_word_size);
 
-    	while(input[input_index] != ' ' && input[input_index] != NULL) //make word
+    	while(input[input_index] != ' ' && input[input_index] != '\0') //make word
     	{
     		if(letter_count == max_word_size)
     		{
@@ -104,9 +121,9 @@ char**  make_word_stream(string input) //make array of words  //TODO: check and 
 }
 
 command_t
-parse(string input)
+parse(char* input)
 {
-	struct command_t cmd = checked_malloc(sizeof(struct command));
+	struct command* cmd = checked_malloc(sizeof(struct command));
 
 	
 	if(input[strlen(input)-1] == ')') //subshell case
@@ -115,7 +132,7 @@ parse(string input)
 		cmd->type = SUBSHELL_COMMAND;
 		cmd->status = -1;
 		strip_first_and_last(input); //removes brackets
-		cmd->u.subshell = parse(input);
+		cmd->u.subshell_command = parse(input);
 		return cmd;
 	}
 	else if(!contains_operator(input))
@@ -175,7 +192,6 @@ parse(string input)
 					  }
 					  break;
 					default:
-					  operator_found = false; // if not any of the above four operators...then not found
 					  break;
 				}
 			}
@@ -208,7 +224,8 @@ parse(string input)
 		strncpy(left_half, input, index - 1);
 		left_half[index] = '\0';
 
-		string left;
+		char* left;
+		left = (char*) checked_malloc(index);
 		memcpy(left, left_half, index);
 		
 
@@ -217,7 +234,8 @@ parse(string input)
 		right_half[strlen(input) - index] = '\0';
 
 
-		string right;
+		char* right;
+		right = (char*) checked_malloc(index);
 		memcpy(right, right_half, index);
 
 		cmd->u.command[0] = parse(left);
@@ -264,19 +282,19 @@ make_command_stream(int(*get_next_byte) (void *),
 		}
 
 		 //check for comments and remove them
-		if ((next == '#')   //TODO: what about ordinary token right before # ????
+		if (next == '#')   //TODO: what about ordinary token right before # ????
 		{
 			do
 			{
 				next = get_next_byte(get_next_byte_argument); 
-			} while ((next > -1) && (next != EOF) && (next != '\n');
+			} while ((next > -1) && (next != EOF) && (next != '\n'));
 		}
 
 		//buffer loading and resizing
 		if(next > -1)
 		{
 			if ( isInvalidChar(next)) {		//check for bad characters: any other than a-zA-Z0-9 ! % + , - . / : @ ^ _  ; | && || ( ) < >
-				fprintf(stderr, "%i: Invalid character\n", line_count);	//invalid character, return line number of error
+				fprintf(stderr, "%zu: Invalid character\n", line_count);	//invalid character, return line number of error
 			}
 			if ( next == '\n')
 				line_count++;	//keep track of line number to return proper errors
@@ -295,7 +313,8 @@ make_command_stream(int(*get_next_byte) (void *),
 		prev = next;
 	} while (next > -1);
 
-	struct command_stream* resultStream;
+	struct command_stream* resultStream = (struct command_stream*) checked_malloc(sizeof(struct command_stream));
+	resultStream->a = (char*) checked_malloc(1000000); //TODO: adjust size
 	resultStream->a = buffer;
 	resultStream->index = count;
 

@@ -39,13 +39,13 @@ void strip_first_and_last(string &input) //strips the first and last char from s
 bool is_operator(char c) // check if the character is an operator
 {
   switch (c) {
-  case ';':
-  case '|':
-  case '$': // $ == ||
-  case '*': // * == &&
-    return true;
-  default:
-    return false;
+    case ';':
+    case '|':
+    case '$': // $ == ||
+    case '*': // * == &&
+      return true;
+    default:
+      return false;
   }
 }
 
@@ -63,29 +63,32 @@ bool contains_operator(string input) //check if input contains an operator
 char**  make_word_stream(string input) //make array of words  //TODO: check and test this
 {
     int stream_size = 100 * sizeof(char*);
-    int counter = 0;
     int word_count = 0;
     char** word_stream = checked_malloc(stream_size);
 
     char* ptr = &input;
+    size_t input_length = strlen(input);
+    int input_index = 0;
 
-    while(ptr != NULL)
+    while(input_index < input_length)
     {
     	int letter_count = 0;
     	int max_word_size = 16;
-    	char* word = (char *) checked_malloc(max_word_size);
+    	char* word = (char *)checked_malloc(max_word_size);
 
-    	while(ptr != ' ' && ptr != NULL) //make word
+    	while(input[input_index] != ' ' && input[input_index] != NULL) //make word
     	{
     		if(letter_count == max_word_size)
     		{
-    			word = checked_grow_alloc(word, &max_word_size);
+    		    word = checked_grow_alloc(word, &max_word_size);
     		}
-    		word[letter_count] = input[count];
+    		word[letter_count] = input[input_index];
     		letter_count++;
-    		counter++;
-    		ptr++;
+    		input_index++;
     	}
+	if (input[input_index] == ' ')
+	  input_index++;  //increase the index to skip the space
+
     	word[letter_count] = '\0'; //insert zero byte at end of word
 
     	if(word_count == stream_size) 
@@ -95,11 +98,6 @@ char**  make_word_stream(string input) //make array of words  //TODO: check and 
     	
     	word_stream[word_count] = word;
     	word_count++;
-    	if(ptr != NULL)
-    		{
-    			ptr++;
-    		}
-
     }
 
     return word_stream;
@@ -131,11 +129,10 @@ parse(string input)
 	else
 	{
 	  char operator;
-	  int operator_found = 0;
+	  bool operator_found = false;
 	  char current_char;
 	  int index = 0;
 	  int open_bracket_count = 0;
-	  int closed_bracket_count = 0;
 		
 		//find operator with greatest precedence in input
 		while(input[index] != '\0')
@@ -151,7 +148,7 @@ parse(string input)
 			}
 			else if(is_operator(current_char) && open_bracket_count == 0)
 			{
-			  operator_found = 1;  // found an operator, so we must break the while loop
+			  operator_found = true;  // found an operator, so we must break the while loop
 				
 				switch(current_char)
 				{
@@ -168,7 +165,7 @@ parse(string input)
 					  operator = '$';
 					  break;
 					default:
-					  operator_found = 0; // if not any of the above four operators...then not found
+					  operator_found = false; // if not any of the above four operators...then not found
 					  break;
 				}
 			}

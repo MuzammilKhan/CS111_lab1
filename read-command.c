@@ -18,6 +18,7 @@ struct command_stream
 {
 	char* a; //File. Make char* instead of char[] to allow assignment
 	int index; 
+	command** forest; // keep a command forest
 };
 
 char* returnInput (char* str) {

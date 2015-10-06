@@ -348,28 +348,19 @@ parse(char* input)
 		}
 
 		index = operator_index; //operator_index is the index of the lowest precedence operator
+		int size = strlen(input)
 
 		//TODO: check if this works
-		char left_half[index+1]; //need enough space for null byte
-		strncpy(left_half, input, index - 1);
+		char left_half[size]; //need enough space for null byte
+		strncpy(left_half, input, size);
 		left_half[index] = '\0';
 
-		char* left;
-		left = (char*) checked_malloc(index);
-		memcpy(left, left_half, index);
-		
-
-		char right_half[strlen(input) - index + 1]; //need enough space for the null byte
-		strncpy(right_half, input + index + 1, strlen(input) - index);
+		char right_half[size]; //need enough space for the null byte
+		strncpy(right_half, input + index + 1, size;
 		right_half[strlen(input) - index] = '\0';
 
-
-		char* right;
-		right = (char*) checked_malloc(index);
-		memcpy(right, right_half, index);
-
-		cmd->u.command[0] = parse(left);
-		cmd->u.command[1] = parse(right);
+		cmd->u.command[0] = parse(left_half);
+		cmd->u.command[1] = parse(right_half);
 		cmd->status = -1;
 		return cmd;
 

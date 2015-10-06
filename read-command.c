@@ -466,15 +466,20 @@ make_command_stream(int(*get_next_byte) (void *),
 		{
 		  
 			int i = count;
+			bool is_semicolon = true;
 			do{
 				if(!isValidWordChar(buffer[i]) && next != EOF)
 				{
-					next = '~';
+					is_semicolon = false;
 					break;
 				}
 				i--;
 			}while(buffer[i] != ' ' && buffer[i] != '\t' && buffer[i] != '\n' && buffer[i] != '~' && i > -1);
 		  
+		  	if(is_semicolon)
+		  	{
+		  		next = '~';
+		  	}
 		}
 
 		if (count >= 1 && (prev == '~' || prev == ';') && (next == '~' || next == ';')) {

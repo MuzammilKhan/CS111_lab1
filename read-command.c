@@ -180,7 +180,7 @@ char**  make_word_stream(char* input) //make array of words  //TODO: check and t
     	size_t max_word_size = 16;
     	char* word = (char *)checked_malloc(max_word_size);
 
-    	while(input[input_index] != ' ' && input[input_index] != '\t' input[input_index] != '\0') //make word
+    	while(input[input_index] != ' ' && input[input_index] != '\t' && input[input_index] != '\0') //make word
     	{
     		if(letter_count == max_word_size)
     		{
@@ -205,7 +205,7 @@ char**  make_word_stream(char* input) //make array of words  //TODO: check and t
     }
 
     word_stream[word_count] = NULL; //indicate end of array, for read_stream purposes
-
+    printf("return word_stream");
     return word_stream;
 }
 
@@ -407,7 +407,7 @@ make_command_stream(int(*get_next_byte) (void *),
 	do
 	{
 		next = get_next_byte(get_next_byte_argument);
-		
+		printf("%c", next);
 		//check if newlines should be ; or spaces
 		// PSEUDOCODE
 		// char* prev
@@ -459,19 +459,21 @@ make_command_stream(int(*get_next_byte) (void *),
 			next = ' ';
 		}
 		else if (count >= 1 && prev == ')' && next == '\n') { //newline evaluated as ;
-			next = ';';
+			next = '~';
 		}
 		else //case for else b == word: newline = ";"
 		{
+		  /*
 			int i = count;
 			do{
-				if(!isValidWordChar(buffer[i]))
+				if(!isValidWordChar(buffer[i]) && next != EOF)
 				{
-					next = ';';
+					next = '~';
 					break;
 				}
 				i--;
 			}while(buffer[i] != ' ' && buffer[i] != '\t' && buffer[i] != '\n' && i > -1);
+		  */
 		}
 
 
@@ -481,7 +483,7 @@ make_command_stream(int(*get_next_byte) (void *),
 			if ( isInvalidChar(next)) {		//check for bad characters: any other than a-zA-Z0-9 ! % + , - . / : @ ^ _  ; | && || ( ) < >
 				fprintf(stderr, "%zu: Invalid character\n", line_count);	//invalid character, return line number of error
 			}
-			if ( next == '\n')
+			if ( next == '\n' || next == '~')
 				line_count++;	//keep track of line number to return proper errors
 			
 			//load buffer
@@ -504,8 +506,6 @@ make_command_stream(int(*get_next_byte) (void *),
 	resultStream->index = count;
 
 	//TODO: REST
-
-	free(buffer);
 	
 	return resultStream;
 

@@ -434,14 +434,7 @@ make_command_stream(int(*get_next_byte) (void *),
 		// if \n is space, convert the \n to =	(psuedo-space)
 		
 
-		//check for comments and remove them
-		if (next == '#')   //TODO: what about ordinary token right before # ????
-		{
-			do
-			{
-				next = get_next_byte(get_next_byte_argument); 
-			} while ((next > -1) && (next != EOF) && (next != '\n'));
-		}
+	
 
 		//convert && to * and || to $
 		if (count >= 1 && prev == '&' && next == '&') {
@@ -476,6 +469,14 @@ make_command_stream(int(*get_next_byte) (void *),
 		  */
 		}
 
+			//check for comments and remove them
+		if (next == '#')   //TODO: what about ordinary token right before # ????
+		{
+			do
+			{
+				next = get_next_byte(get_next_byte_argument); 
+			} while ((next > -1) && (next != EOF) && (next != '\n'));
+		}
 
 		//buffer loading and resizing
 		if(next > -1)

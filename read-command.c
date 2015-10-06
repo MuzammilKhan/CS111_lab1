@@ -408,6 +408,11 @@ make_command_stream(int(*get_next_byte) (void *),
 	do
 	{
 		next = get_next_byte(get_next_byte_argument);
+		
+		if (next != EOF && isInvalidChar(next)) {		//check for bad characters: any other than a-zA-Z0-9 ! % + , - . / : @ ^ _  ; | && || ( ) < >
+			fprintf(stderr, "%zu: Invalid character\n", line_count);	//invalid character, return line number of error
+			return NULL;
+		}
 		//check if newlines should be ; or spaces
 		// PSEUDOCODE
 		// char* prev
@@ -489,9 +494,6 @@ make_command_stream(int(*get_next_byte) (void *),
 		//buffer loading and resizing
 		if(next > -1)
 		{
-			if ( isInvalidChar(next)) {		//check for bad characters: any other than a-zA-Z0-9 ! % + , - . / : @ ^ _  ; | && || ( ) < >
-				fprintf(stderr, "%zu: Invalid character\n", line_count);	//invalid character, return line number of error
-			}
 			if ( next == '\n' || next == '~') 
 				line_count++;	//keep track of line number to return proper errors
 			

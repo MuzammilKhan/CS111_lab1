@@ -54,5 +54,5 @@ void
 print_command (command_t c)
 {
   command_indented_print (2, c);
-  putchar ('\n');
+  //  putchar ('\n');
 }

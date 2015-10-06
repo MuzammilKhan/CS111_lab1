@@ -18,6 +18,7 @@ struct command_stream
 {
 	char* a; //File. Make char* instead of char[] to allow assignment
 	int index; 
+	command** forest; // keep a command forest
 };
 
 char* returnInput (char* str) {
@@ -38,7 +39,7 @@ bool isInvalidChar (char c) {
        || c == '^' || c == '_' || c == ';'
        || c == '|' || c == '&' || c == '('
        || c == ')' || c == '<' || c == '>' 
-       || c == ' ' || c == '\n'){
+       || c == ' ' || c == '\t' || c == '\n'){
     return false;
   }
   return true;
@@ -111,14 +112,14 @@ char**  make_word_stream(char* input) //make array of words  //TODO: check and t
     		letter_count++;
     		input_index++;
     	}
-	if (input[input_index] == ' ')
-	  input_index++;  //increase the index to skip the space
+		if (input[input_index] == ' ')
+	 	 input_index++;  //increase the index to skip the space   //TODO: adjust for '\t' and need to consider multiple whitespaces
 
-    	word[letter_count] = '\0'; //insert zero byte at end of word
+    		word[letter_count] = '\0'; //insert zero byte at end of word
 
     	if(word_count == stream_size) 
     	{
-    		word_stream = checked_grow_alloc(word_stream, &stream_size);
+    	word_stream = checked_grow_alloc(word_stream, &stream_size);
     	}
     	
     	word_stream[word_count] = word;
@@ -130,14 +131,55 @@ char**  make_word_stream(char* input) //make array of words  //TODO: check and t
     return word_stream;
 }
 
+
+
+bool is_subshell(char* input) //checks if the input string is bounded by brackets
+{
+	int index = 0;
+	bool open_bracket_found = false;
+	bool char_after_closed_bracket = false;
+	int open_bracket_count = 0;
+	int closed_bracket_count = 0;
+	char current;
+
+	while(input[index] != '\0')
+	{
+		current = input[index];
+		if(!open_bracketfound && current != ' ' && current != '\t' && current != '\n') //Question: should i take EOF into account?
+		{
+			return false;
+		}
+
+		if(current == '(')
+			{open_bracket_count++;}
+		else if (current == ')')
+			{closed_bracket_count++;
+				char_after_closed_bracket = false;}
+
+		if(open_bracket_count == closed_bracket_count)
+		{
+			if(current != ')' && current != '(' && current != ' ' && current != '\t' && current != '\n')
+			{
+				char_after_closed_bracket = true;
+			}
+		}
+
+		index++;
+	}
+
+	return !char_after_closed_bracket;
+}
+
+
 command_t
 parse(char* input)
 {
 	struct command* cmd = checked_malloc(sizeof(struct command));
 
 	
-	if(input[strlen(input)-1] == ')') //subshell case
+	if(issubshell(input)) //subshell case
 	{ 
+		
 		//TODO: set input and output
 		cmd->type = SUBSHELL_COMMAND;
 		cmd->status = -1;
@@ -145,7 +187,7 @@ parse(char* input)
 		cmd->u.subshell_command = parse(input);
 		return cmd;
 	}
-	else if(!contains_operator(input))
+	else if(!contains_operator(input)) //simple command
 	{
 		//TODO: set input and output
 	  
@@ -284,6 +326,41 @@ make_command_stream(int(*get_next_byte) (void *),
 	{
 		next = get_next_byte(get_next_byte_argument);
 		
+		//check if newlines should be ; or spaces
+		// PSEUDOCODE
+		// char* prev
+		// char* cur
+		//
+		// check if first and second word have semicolons
+		//
+		// prev = first word in buffer
+		// cur = second word in buffer
+		//
+		// while cur does not have a semicolon
+		// 	prev = cur
+		// 	cur = next word
+		//
+		// if cur[0] is a semicolon
+		// 	return prev
+		// else
+		// 	read cur up till the semicolon
+		// 	return cur[0] up to the char before the semicolon
+		
+		// b ; a
+		// use b to determine if \n is ; or space
+		// if \n is ;, convert the \n to - (pseudo-semicolon)
+		// if \n is space, convert the \n to =	(psuedo-space)
+		
+
+		//check for comments and remove them
+		if (next == '#')   //TODO: what about ordinary token right before # ????
+		{
+			do
+			{
+				next = get_next_byte(get_next_byte_argument); 
+			} while ((next > -1) && (next != EOF) && (next != '\n'));
+		}
+
 		//convert && to * and || to $
 		if (count >= 1 && prev == '&' && next == '&') {
 			count--;	//decrease count since converting from two-char to one char
@@ -293,15 +370,16 @@ make_command_stream(int(*get_next_byte) (void *),
 			count--;
 			next = '$';
 		}
-
-		 //check for comments and remove them
-		if (next == '#')   //TODO: what about ordinary token right before # ????
-		{
-			do
-			{
-				next = get_next_byte(get_next_byte_argument); 
-			} while ((next > -1) && (next != EOF) && (next != '\n'));
+		else if (count >= 1 && prev == ';' && next == ';') { //TODO: look at this case again. 
+			count--;
+			next = '~';
 		}
+		else if (next == EOF)
+		{
+			next = '\0';
+		}
+
+
 
 		//buffer loading and resizing
 		if(next > -1)

@@ -18,7 +18,7 @@ struct command_stream
 {
 	char* a; //File. Make char* instead of char[] to allow assignment
 	int index; 
-	command** forest; // keep a command forest
+	struct command** forest; // keep a command forest
 };
 
 
@@ -53,13 +53,13 @@ char* returnInputOutput (char** str_array, char delimiter) {
 		}
 	}
 	
-	if (result_index == -1) // no '<'/'>' found, that means no input/output
+	if (result_word_index == -1) // no '<'/'>' found, that means no input/output
 		return NULL;
 	
 	//if symbol is last char in the word, look at next word
-	if (result_char_index == strlen(str_array[result_word_index])-1 ) {
+	if (result_char_index == (int)(strlen(str_array[result_word_index]))-1 ) {
 		if (result_word_index != charArrLen(str_array)-2)	//no more words after the symbol or multiple word in input/output
-			return -1; // error
+			return NULL; // error
 		//remove the output from str_array (removing two strings)
 		if (result_char_index == 0)	{//if '>' had no prefix
 			str_array[charArrLen(str_array)-2] = NULL;
@@ -73,7 +73,7 @@ char* returnInputOutput (char** str_array, char delimiter) {
 	
 	//if symbol is not last char in the word, return the chars after the symbol
 	if (result_word_index != charArrLen(str_array)-1)	//no more words after the symbol or multiple word in input/output
-		return -1; // error
+		return NULL; // error
 		
 	int index_after_symbol = result_char_index;
 	int counter = 0;
@@ -81,7 +81,7 @@ char* returnInputOutput (char** str_array, char delimiter) {
 	subword_after_symbol = checked_malloc(strlen(str_array[result_word_index]));
 	
 	//copy in the output word, ready for returning
-	for ( ; index_after_symbol < strlen(str_array[result_word_index]); index_after_symbol++) {
+	for ( ; index_after_symbol < (int)strlen(str_array[result_word_index]); index_after_symbol++) {
 		subword_after_symbol[counter] = str_array[result_word_index][index_after_symbol];
 		counter++;
 	}
@@ -210,7 +210,7 @@ bool is_subshell(char* input) //checks if the input string is bounded by bracket
 	while(input[index] != '\0')
 	{
 		current = input[index];
-		if(!open_bracketfound && current != ' ' && current != '\t' && current != '\n') //Question: should i take EOF into account?
+		if(!open_bracket_found && current != ' ' && current != '\t' && current != '\n') //Question: should i take EOF into account?
 		{
 			return false;
 		}
@@ -242,15 +242,15 @@ parse(char* input)
 	struct command* cmd = checked_malloc(sizeof(struct command));
 
 	
-	if(issubshell(input)) //subshell case
+	if(is_subshell(input)) //subshell case
 	{ 
 	  	char** str_array = make_word_stream(input);
 	  
 	  	//set input and output
 	  	// MUST SET OUTPUT FIRST, OR ELSE WILL NOT WORK. OUTPUT IS ALWAYS WRITTEN
 	  	// AFTER INPUT IN LAB SPECS, SO MUST BE CHECKED FIRST
-	  	cmd->output =  returnInputOutput(temp, '>');
-	  	cmd->input = returnInputOutput(temp, '<');
+	  	cmd->output =  returnInputOutput(str_array, '>');
+	  	cmd->input = returnInputOutput(str_array, '<');
 	  	
 		cmd->type = SUBSHELL_COMMAND;
 		cmd->status = -1;
@@ -265,8 +265,8 @@ parse(char* input)
 	  	//set input and output
 	  	// MUST SET OUTPUT FIRST, OR ELSE WILL NOT WORK. OUTPUT IS ALWAYS WRITTEN
 	  	// AFTER INPUT IN LAB SPECS, SO MUST BE CHECKED FIRST
-	  	cmd->output =  returnInputOutput(temp, '>');
-	  	cmd->input = returnInputOutput(temp, '<');
+	  	cmd->output =  returnInputOutput(str_array, '>');
+	  	cmd->input = returnInputOutput(str_array, '<');
 
  		cmd->type = SIMPLE_COMMAND;
 		cmd->status = -1;

@@ -131,13 +131,53 @@ char**  make_word_stream(char* input) //make array of words  //TODO: check and t
     return word_stream;
 }
 
+
+
+bool is_subshell(char* input) //checks if the input string is bounded by brackets
+{
+	int index = 0;
+	bool open_bracket_found = false;
+	bool char_after_closed_bracket = false;
+	int open_bracket_count = 0;
+	int closed_bracket_count = 0;
+	char current;
+
+	while(input[index] != '\0')
+	{
+		current = input[index];
+		if(!open_bracketfound && current != ' ' && current != '\t' && current != '\n') //Question: should i take EOF into account?
+		{
+			return false;
+		}
+
+		if(current == '(')
+			{open_bracket_count++;}
+		else if (current == ')')
+			{closed_bracket_count++;
+				char_after_closed_bracket = false;}
+
+		if(open_bracket_count == closed_bracket_count)
+		{
+			if(current != ')' && current != '(' && current != ' ' && current != '\t' && current != '\n')
+			{
+				char_after_closed_bracket = true;
+			}
+		}
+
+		index++;
+	}
+
+	return !char_after_closed_bracket;
+}
+
+
 command_t
 parse(char* input)
 {
 	struct command* cmd = checked_malloc(sizeof(struct command));
 
 	
-	if(input[strlen(input)-1] == ')') //subshell case
+	if(issubshell(input)) //subshell case
 	{ 
 		
 		//TODO: set input and output
@@ -320,7 +360,7 @@ make_command_stream(int(*get_next_byte) (void *),
 			count--;
 			next = '$';
 		}
-		else if (count >= 1 && prev == ';' && next == ';') {
+		else if (count >= 1 && prev == ';' && next == ';') { //TODO: look at this case again. 
 			count--;
 			next = '~';
 		}

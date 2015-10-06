@@ -22,7 +22,7 @@ execute_command (command_t c, int time_travel)
      You can also use external functions defined in the GNU C Library.  */
 
      //random stuff so that make will work. otherwise gcc complains about unused parameters
-     if(command_t != NULL && time_travel == time_travel)
+     if(c != NULL && time_travel == time_travel)
      {
      	 error (1, 0, "command execution not yet implemented");
      }

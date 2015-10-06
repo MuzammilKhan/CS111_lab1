@@ -39,7 +39,7 @@ bool isInvalidChar (char c) {
        || c == '^' || c == '_' || c == ';'
        || c == '|' || c == '&' || c == '('
        || c == ')' || c == '<' || c == '>' 
-       || c == ' ' || c == '\n'){
+       || c == ' ' || c == '\t' || c == '\n'){
     return false;
   }
   return true;

@@ -516,55 +516,6 @@ make_command_stream(int(*get_next_byte) (void *),
 	//TODO: return something
 }
 
-void recursive_print(command_t cmd) {
-  if (cmd->type == SIMPLE_COMMAND) {
-    char** c_ptr = cmd->u.word;
-    size_t word_index = 0;
-    bool first_word = true;
-    while (c_ptr[word_index] != NULL) {
-      if (!first_word)  //print a space before every word, except for the first word
-	printf(" ");
-      first_word = false;
-      printf("%s", c_ptr[word_index]);
-      word_index++;
-    }
-
-    if (cmd->input != NULL) {
-      printf(" < %s", cmd->input);
-    }
-    if (cmd->output != NULL) {
-      printf(" > %s", cmd->output);
-    }
-
-  } 
-  else if (cmd->type == SUBSHELL_COMMAND) {
-    printf("(");
-    recursive_print(cmd->u.subshell_command);
-    printf(")");
-  }
-  else {
-    recursive_print(cmd->u.command[0]);
-
-    switch(cmd->type) {
-    case AND_COMMAND:
-      printf("&&");
-      break;
-    case SEQUENCE_COMMAND:
-      printf(";");
-      break;
-    case OR_COMMAND:
-      printf("||");
-      break;
-    case PIPE_COMMAND:
-      printf("|");
-      break;
-    default:
-      break;
-    }
-    recursive_print(cmd->u.command[1]);
-  }
-
-}
 
 command_t
 read_command_stream(command_stream_t s)

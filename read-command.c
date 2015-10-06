@@ -462,9 +462,9 @@ make_command_stream(int(*get_next_byte) (void *),
 		else if (count >= 1 && prev == ')' && next == '\n') { //newline evaluated as ";"
 			next = '~';
 		}
-		else //case for else b == word: newline = ";"
+		else //case for else b == word: newline = ";" //NOTE:testing this case 
 		{
-		  /*
+		  
 			int i = count;
 			do{
 				if(!isValidWordChar(buffer[i]) && next != EOF)
@@ -473,8 +473,8 @@ make_command_stream(int(*get_next_byte) (void *),
 					break;
 				}
 				i--;
-			}while(buffer[i] != ' ' && buffer[i] != '\t' && buffer[i] != '\n' && i > -1);
-		  */
+			}while(buffer[i] != ' ' && buffer[i] != '\t' && buffer[i] != '\n' && buffer[i] != '~' && i > -1);
+		  
 		}
 
 		if (count >= 1 && (prev == '~' || prev == ';') && (next == '~' || next == ';')) {

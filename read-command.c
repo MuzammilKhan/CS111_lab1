@@ -467,7 +467,8 @@ make_command_stream(int(*get_next_byte) (void *),
 		else if (count >= 1 && prev == ')' && next == '\n') { //newline evaluated as ";"
 			next = '~';
 		}
-		else if (count >= 1 && next == '\n') //case for else b == word: newline = ";" //NOTE:testing this case 
+		
+		if (count >= 1 && (next == ';' || next == '~')) //case for else b == word: newline = ";" //NOTE:testing this case 
 		{
 		  
 			int i = count;

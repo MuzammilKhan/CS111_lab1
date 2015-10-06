@@ -8,3 +8,4 @@ Points to address:
 - other whitespace associated errors ex: line starting with whitespace will mess with substring detection as it stands currently.
 -I/O pointers
 - address this "Note that this does not apply for the case of newline on the left side the PIPE, AND, OR. In these cases, it is considered as invalid."
+-free stream->a after everything is done

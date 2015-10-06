@@ -207,7 +207,7 @@ bool is_subshell(char* input) //checks if the input string is bounded by bracket
 	int closed_bracket_count = 0;
 	char current;
 
-	while(input[index] != '\0')
+	while(input[index] != '\0' && input[index] != EOF)
 	{
 		current = input[index];
 		if(!open_bracket_found && current != ' ' && current != '\t' && current != '\n') //Question: should i take EOF into account?
@@ -449,10 +449,7 @@ make_command_stream(int(*get_next_byte) (void *),
 			count--;
 			next = '~';
 		}
-		else if (next == EOF)
-		{
-			next = '\0';
-		}
+
 
 
 

@@ -206,7 +206,6 @@ char**  make_word_stream(char* input) //make array of words  //TODO: check and t
     }
 
     word_stream[word_count] = NULL; //indicate end of array, for read_stream purposes
-    printf("return word_stream");
     return word_stream;
 }
 
@@ -396,8 +395,9 @@ make_command_stream(int(*get_next_byte) (void *),
 	   You can also use external functions defined in the GNU C Library.  */
 	//error (1, 0, "command reading not yet implemented");
 	//return 0;
-
+  
 	size_t count = 0;
+	size_t case_count = 1;
 	size_t buffer_size = 1024;
 	char* buffer = checked_malloc(buffer_size);
 	char next;
@@ -408,7 +408,6 @@ make_command_stream(int(*get_next_byte) (void *),
 	do
 	{
 		next = get_next_byte(get_next_byte_argument);
-		printf("%c", next);
 		//check if newlines should be ; or spaces
 		// PSEUDOCODE
 		// char* prev
@@ -478,6 +477,9 @@ make_command_stream(int(*get_next_byte) (void *),
 		  */
 		}
 
+		if (count >= 1 && (prev == '~' || prev == ';') && (next == '~' || next == ';')) {
+		        case_count++;
+		}
 
 		//buffer loading and resizing
 		if(next > -1)
@@ -505,7 +507,7 @@ make_command_stream(int(*get_next_byte) (void *),
 	struct command_stream* resultStream = (struct command_stream*) checked_malloc(sizeof(struct command_stream));
 	resultStream->a = (char*) checked_malloc(1000000); //TODO: adjust size
 	resultStream->a = buffer;
-	resultStream->index = count;
+	resultStream->index = case_count;
 
 	//TODO: REST
 	
@@ -567,11 +569,13 @@ void recursive_print(command_t cmd) {
 command_t
 read_command_stream(command_stream_t s)
 {
+  if (s->index == 0)
+    return 0;
+
   struct command* cmd= parse(s->a);
-  recursive_print(cmd);
 	/* FIXME: Replace this with your implementation too.  */
-	
-	return 0;
+  s->index--;
+  return cmd;
 
 
 }

@@ -436,12 +436,13 @@ make_command_stream(int(*get_next_byte) (void *),
 		
 
 		//check for comments and remove them
-		if (next == '#' && count >=1 && prev != '\'')   //TODO: what about ordinary token right before # ???? //TODO: are we supposed to let "'" through otherwise stuff like echo '#lol' will fail what about """
+		if (next == '#')   //TODO: what about ordinary token right before # ???? //TODO: are we supposed to let "'" through otherwise stuff like echo '#lol' will fail what about """
 		{
-			do
+			do //TODO: are we supposed to let "'" through otherwise stuff like echo '#lol' will fail what about """
 			{
-				next = get_next_byte(get_next_byte_argument); 
+					next = get_next_byte(get_next_byte_argument); 
 			} while ((next > -1) && (next != EOF) && (next != '\n'));
+			
 		}
 
 		//convert && to * and || to $
@@ -459,7 +460,7 @@ make_command_stream(int(*get_next_byte) (void *),
 		else if (count >= 1 && prev == '(' && next == '\n') { //newline evaluated as space
 			next = ' ';
 		}
-		else if (count >= 1 && prev == ')' && next == '\n') { //newline evaluated as ;
+		else if (count >= 1 && prev == ')' && next == '\n') { //newline evaluated as ";"
 			next = '~';
 		}
 		else //case for else b == word: newline = ";"
@@ -484,7 +485,7 @@ make_command_stream(int(*get_next_byte) (void *),
 			if ( isInvalidChar(next)) {		//check for bad characters: any other than a-zA-Z0-9 ! % + , - . / : @ ^ _  ; | && || ( ) < >
 				fprintf(stderr, "%zu: Invalid character\n", line_count);	//invalid character, return line number of error
 			}
-			if ( next == '\n' || next == '~')
+			if ( next == '\n' || next == '~') 
 				line_count++;	//keep track of line number to return proper errors
 			
 			//load buffer

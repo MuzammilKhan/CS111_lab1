@@ -351,7 +351,7 @@ parse(char* input)
 		}
 
 		index = operator_index; //operator_index is the index of the lowest precedence operator
-		int size = strlen(input)
+		int size = strlen(input);
 
 		//TODO: check if this works
 		char left_half[size]; //need enough space for null byte

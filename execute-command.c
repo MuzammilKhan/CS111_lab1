@@ -4,6 +4,7 @@
 #include "command-internals.h"
 
 #include <error.h>
+#include <stdlib.h> //for NULL
 
 /* FIXME: You may need to add #include directives, macro definitions,
    static function definitions, etc.  */

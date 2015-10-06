@@ -123,6 +123,19 @@ bool isValidWordChar (char c)
 	return false;
 }
 
+bool is_operator(char c) // check if the character is an operator
+{
+  switch (c) {
+    case ';':
+    case '|':
+    case '$': // $ == ||
+    case '*': // * == &&
+      return true;
+    default:
+      return false;
+  }
+}
+
 void strip_first_and_last(char* input) //strips the first and last char from string
 {
 	int limit = strlen(input);
@@ -140,18 +153,6 @@ void strip_first_and_last(char* input) //strips the first and last char from str
 	return;
 }
 
-bool is_operator(char c) // check if the character is an operator
-{
-  switch (c) {
-    case ';':
-    case '|':
-    case '$': // $ == ||
-    case '*': // * == &&
-      return true;
-    default:
-      return false;
-  }
-}
 
 bool contains_operator(char* input) //check if input contains an operator
 {
@@ -435,7 +436,7 @@ make_command_stream(int(*get_next_byte) (void *),
 		
 
 		//check for comments and remove them
-		if (next == '#' && count >=1 && !isValidWordChar(prev))   //TODO: what about ordinary token right before # ????
+		if (next == '#' && count >=1 && prev != '\'')   //TODO: what about ordinary token right before # ???? //TODO: are we supposed to let "'" through otherwise stuff like echo '#lol' will fail what about """
 		{
 			do
 			{

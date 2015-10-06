@@ -452,12 +452,6 @@ make_command_stream(int(*get_next_byte) (void *),
 			count--;
 			next = '$';
 		}
-		
-		/*else if b == operator: newline = space
-		elif b == "(": newline = space
-		elif b == ")": newline = ";"
-		else b == word: newline = ";"*/
-
 		else if (count >= 1 && is_operator(prev) && next == '\n') { //newline evaluated as space
 			next = ' ';
 		}

@@ -435,7 +435,7 @@ make_command_stream(int(*get_next_byte) (void *),
 		
 
 		//check for comments and remove them
-		if (next == '#' && count >=1 && !isValidWordChar(prev))   //TODO: what about ordinary token right before # ????
+		if (next == '#' && count >=1 && !isValidWordChar(prev) && prev != '\n')   //TODO: what about ordinary token right before # ????
 		{
 			do
 			{

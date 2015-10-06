@@ -359,7 +359,7 @@ parse(char* input)
 		left_half[index] = '\0';
 
 		char right_half[size]; //need enough space for the null byte
-		strncpy(right_half, input + index + 1, size;
+		strncpy(right_half, input + index + 1, size);
 		right_half[strlen(input) - index] = '\0';
 
 		cmd->u.command[0] = parse(left_half);

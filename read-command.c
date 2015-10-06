@@ -510,8 +510,6 @@ make_command_stream(int(*get_next_byte) (void *),
 	resultStream->index = count;
 
 	//TODO: REST
-
-	free(buffer);
 	
 	return resultStream;
 

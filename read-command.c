@@ -351,6 +351,16 @@ make_command_stream(int(*get_next_byte) (void *),
 		// if \n is ;, convert the \n to - (pseudo-semicolon)
 		// if \n is space, convert the \n to =	(psuedo-space)
 		
+
+		//check for comments and remove them
+		if (next == '#')   //TODO: what about ordinary token right before # ????
+		{
+			do
+			{
+				next = get_next_byte(get_next_byte_argument); 
+			} while ((next > -1) && (next != EOF) && (next != '\n'));
+		}
+
 		//convert && to * and || to $
 		if (count >= 1 && prev == '&' && next == '&') {
 			count--;	//decrease count since converting from two-char to one char
@@ -364,15 +374,12 @@ make_command_stream(int(*get_next_byte) (void *),
 			count--;
 			next = '~';
 		}
-
-		 //check for comments and remove them
-		if (next == '#')   //TODO: what about ordinary token right before # ????
+		else if (next == EOF)
 		{
-			do
-			{
-				next = get_next_byte(get_next_byte_argument); 
-			} while ((next > -1) && (next != EOF) && (next != '\n'));
+			next = '\0';
 		}
+
+
 
 		//buffer loading and resizing
 		if(next > -1)

@@ -200,6 +200,9 @@ char**  make_word_stream(char* input) //make array of words  //TODO: check and t
 
 bool is_subshell(char* input) //checks if the input string is bounded by brackets
 {
+	if (strlen(input) == 0)
+		return false;
+	
 	int index = 0;
 	bool open_bracket_found = false;
 	bool char_after_closed_bracket = false;

@@ -110,6 +110,19 @@ bool isInvalidChar (char c) {
   return true;
 }
 
+bool isValidWordChar (char c)
+{
+	if ( (c >= 65 && c <= 90)     //check for A-Z
+       || (c >= 97 && c <= 122) //check for a-z
+       || (c >= 48 && c < 57)   //check for 0-9
+       || c == '!' || c == '%' || c == '+'
+       || c == ',' || c == '-' || c == '.'
+       || c == '/' || c == ':' || c == '@'
+       || c == '^' || c == '_')
+		{return true;}
+	return false;
+}
+
 void strip_first_and_last(char* input) //strips the first and last char from string
 {
 	int limit = strlen(input);
@@ -167,7 +180,7 @@ char**  make_word_stream(char* input) //make array of words  //TODO: check and t
     	size_t max_word_size = 16;
     	char* word = (char *)checked_malloc(max_word_size);
 
-    	while(input[input_index] != ' ' && input[input_index] != '\0') //make word
+    	while(input[input_index] != ' ' && input[input_index] != '\t' input[input_index] != '\0') //make word
     	{
     		if(letter_count == max_word_size)
     		{
@@ -177,7 +190,7 @@ char**  make_word_stream(char* input) //make array of words  //TODO: check and t
     		letter_count++;
     		input_index++;
     	}
-		if (input[input_index] == ' ')
+		if (input[input_index] == ' ' || input[input_index == '\t'])
 	 	 input_index++;  //increase the index to skip the space   //TODO: adjust for '\t' and need to consider multiple whitespaces
 
     		word[letter_count] = '\0'; //insert zero byte at end of word
@@ -460,9 +473,18 @@ make_command_stream(int(*get_next_byte) (void *),
 		else if (count >= 1 && prev == ')' && next == '\n') { //newline evaluated as ;
 			next = ';';
 		}
-		//TODO: case for else b == word: newline = ";
-
-
+		else //case for else b == word: newline = ";"
+		{
+			int i = count;
+			do{
+				if(!isValidWordChar(buffer[i]))
+				{
+					next = ';';
+					break;
+				}
+				i--;
+			}while(buffer[i] != ' ' && buffer[i] != '\t' && buffer[i] != '\n' && i > -1);
+		}
 
 
 		//buffer loading and resizing

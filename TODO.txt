@@ -3,7 +3,6 @@ Points to address:
 -need to write function to properly delete the command tree
 -Check for * and $ chars first and report invalid synatax before replacing them in buffer
 
--TODO case where: else b == word: newline = ";
 
 -'\t' is also whitespace and can seperate words. code has to be modified to accomodate  this.
 - other whitespace associated errors ex: line starting with whitespace will mess with substring detection as it stands currently.

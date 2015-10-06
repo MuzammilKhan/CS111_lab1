@@ -180,7 +180,7 @@ char**  make_word_stream(char* input) //make array of words  //TODO: check and t
     	size_t max_word_size = 16;
     	char* word = (char *)checked_malloc(max_word_size);
 
-    	while(input[input_index] != ' ' && input[input_index] != '\t' input[input_index] != '\0') //make word
+    	while(input[input_index] != ' ' && input[input_index] != '\t' && input[input_index] != '\0') //make word
     	{
     		if(letter_count == max_word_size)
     		{

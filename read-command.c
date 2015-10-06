@@ -453,10 +453,10 @@ make_command_stream(int(*get_next_byte) (void *),
 			next = '$';
 		}
 		else if (count >= 1 && is_operator(prev) && next == '\n') { //newline evaluated as space
-			next = ' ';
+		  next = '\n'; //if newline evaluated as space, just leave it as it is
 		}
 		else if (count >= 1 && prev == '(' && next == '\n') { //newline evaluated as space
-			next = ' ';
+		  next = '\n'; //if newline evaluated as space, just leave it as it is
 		}
 		else if (count >= 1 && prev == ')' && next == '\n') { //newline evaluated as ;
 			next = '~';

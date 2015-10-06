@@ -1,14 +1,9 @@
 Points to address:
--once we know if simple or subshell consider redirection -- also figure out where to do this //in read-command.c
 -is the way comments are being removed correct
 -need to write function to properly delete the command tree
--turn && into * and || into $. Check for * and $ chars first and report invalid synatax before replacing them in buffer
+-Check for * and $ chars first and report invalid synatax before replacing them in buffer
 
--place this pseudo-code somewhere:
-if b == operator: newline = space
-elif b == "(": newline = space
-elif b == ")": newline = ";"
-else b == word: newline = ";"
+-TODO case where: else b == word: newline = ";
 
 -'\t' is also whitespace and can seperate words. code has to be modified to accomodate  this.
 - other whitespace associated errors ex: line starting with whitespace will mess with substring detection as it stands currently.

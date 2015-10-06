@@ -210,7 +210,7 @@ bool is_subshell(char* input) //checks if the input string is bounded by bracket
 	while(input[index] != '\0' && input[index] != EOF)
 	{
 		current = input[index];
-		if(!open_bracket_found && current != ' ' && current != '\t' && current != '\n') //Question: should i take EOF into account?
+		if(!open_bracket_found && current != ' ' && current != '\t' && current != '\n') 
 		{
 			return false;
 		}
@@ -445,10 +445,22 @@ make_command_stream(int(*get_next_byte) (void *),
 			count--;
 			next = '$';
 		}
-		else if (count >= 1 && prev == ';' && next == ';') { //TODO: look at this case again. 
-			count--;
-			next = '~';
+		
+		/*else if b == operator: newline = space
+		elif b == "(": newline = space
+		elif b == ")": newline = ";"
+		else b == word: newline = ";"*/
+
+		else if (count >= 1 && is_operator(prev) && next == '\n') { //newline evaluated as space
+			next = ' ';
 		}
+		else if (count >= 1 && prev == '(' && next == '\n') { //newline evaluated as space
+			next = ' ';
+		}
+		else if (count >= 1 && prev == ')' && next == '\n') { //newline evaluated as ;
+			next = ';';
+		}
+		//TODO: case for else b == word: newline = ";
 
 
 
@@ -496,7 +508,7 @@ void recursive_print(command_t cmd) {
     size_t word_index = 0;
     bool first_word = true;
     while (c_ptr[word_index] != NULL) {
-      if (!first_word)  //print a before every word, except for the first word
+      if (!first_word)  //print a space before every word, except for the first word
 	printf(" ");
       first_word = false;
       printf("%s", c_ptr[word_index]);

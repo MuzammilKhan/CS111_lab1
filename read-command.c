@@ -21,12 +21,77 @@ struct command_stream
 	command** forest; // keep a command forest
 };
 
-char* returnInput (char* str) {
-  return NULL; //TODO
+
+int charArrLen(char** str_array) {
+	if (str_array == NULL)
+		return 0;
+	int i = 0;
+	while (str_array[i] != NULL) {
+		i++;
+	}
+	return i;
 }
 
-char* returnOutput (char* str) {
-  return NULL; //TODO
+char* returnInputOutput (char** str_array, char delimiter) {
+// when delimiter == '<', this function checks for input
+// when delimiter == '>', this function checks for output
+
+	size_t line_offset = 0;
+	size_t word_index = 0;
+	size_t array_length = charArrLen(str_array);
+	int result_word_index = -1;
+	int result_char_index = -1;
+	
+	for( ; word_index < array_length; word_index++) {
+		size_t char_index = 0;
+		size_t word_length = strlen(str_array[word_index]);
+		for ( ; char_index < word_length; char_index++) {
+			if (str_array[word_index][char_index] == delimiter) {
+				result_word_index = (int)word_index;
+				result_char_index = (int)char_index;
+			}
+		}
+	}
+	
+	if (result_index == -1) // no '<'/'>' found, that means no input/output
+		return NULL;
+	
+	//if symbol is last char in the word, look at next word
+	if (result_char_index == strlen(str_array[result_word_index])-1 ) {
+		if (result_word_index != charArrLen(str_array)-2)	//no more words after the symbol or multiple word in input/output
+			return -1; // error
+		//remove the output from str_array (removing two strings)
+		if (result_char_index == 0)	{//if '>' had no prefix
+			str_array[charArrLen(str_array)-2] = NULL;
+		}
+		else  {	//be careful not to remove the prefix of '>'
+			str_array[charArrLen(str_array)-1] = NULL;
+			str_array[charArrLen(str_array)-2][result_char_index] = '\0';
+		}
+		return str_array[result_word_index + 1];
+	}
+	
+	//if symbol is not last char in the word, return the chars after the symbol
+	if (result_word_index != charArrLen(str_array)-1)	//no more words after the symbol or multiple word in input/output
+		return -1; // error
+		
+	int index_after_symbol = result_char_index;
+	int counter = 0;
+	char* subword_after_symbol;
+	subword_after_symbol = checked_malloc(strlen(str_array[result_word_index]));
+	
+	//copy in the output word, ready for returning
+	for ( ; index_after_symbol < strlen(str_array[result_word_index]); index_after_symbol++) {
+		subword_after_symbol[counter] = str_array[result_word_index][index_after_symbol];
+		counter++;
+	}
+	//manually terminate string
+	subword_after_symbol[counter] = '\0';
+	
+	//remove the input/output from str_array (removing one string)
+	str_array[charArrLen(str_array)-1] = NULL;
+	
+	return subword_after_symbol;
 }
 
 bool isInvalidChar (char c) {
@@ -179,8 +244,14 @@ parse(char* input)
 	
 	if(issubshell(input)) //subshell case
 	{ 
-		
-		//TODO: set input and output
+	  	char** str_array = make_word_stream(input);
+	  
+	  	//set input and output
+	  	// MUST SET OUTPUT FIRST, OR ELSE WILL NOT WORK. OUTPUT IS ALWAYS WRITTEN
+	  	// AFTER INPUT IN LAB SPECS, SO MUST BE CHECKED FIRST
+	  	cmd->output =  returnInputOutput(temp, '>');
+	  	cmd->input = returnInputOutput(temp, '<');
+	  	
 		cmd->type = SUBSHELL_COMMAND;
 		cmd->status = -1;
 		strip_first_and_last(input); //removes brackets
@@ -189,13 +260,17 @@ parse(char* input)
 	}
 	else if(!contains_operator(input)) //simple command
 	{
-		//TODO: set input and output
+	  	char** str_array = make_word_stream(input);
 	  
-	  cmd->input = NULL; //if no input, set to NULL for read_stream purposes
-	  cmd->output = NULL; //if no output, set to NULL for read_stream purposes
+	  	//set input and output
+	  	// MUST SET OUTPUT FIRST, OR ELSE WILL NOT WORK. OUTPUT IS ALWAYS WRITTEN
+	  	// AFTER INPUT IN LAB SPECS, SO MUST BE CHECKED FIRST
+	  	cmd->output =  returnInputOutput(temp, '>');
+	  	cmd->input = returnInputOutput(temp, '<');
+
  		cmd->type = SIMPLE_COMMAND;
 		cmd->status = -1;
-		cmd->u.word = make_word_stream(input);
+		cmd->u.word = str_array;
 		return cmd;
 	}
 	else

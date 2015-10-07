@@ -417,7 +417,7 @@ make_command_stream(int(*get_next_byte) (void *),
 		next = get_next_byte(get_next_byte_argument);
 		
 		if (next != EOF && isInvalidChar(next)) {		//check for bad characters: any other than a-zA-Z0-9 ! % + , - . / : @ ^ _  ; | && || ( ) < >
-			fprintf(stderr, "%zu: Invalid character\n", line_count);	//invalid character, return line number of error
+			error(1,0,"%zu: Invalid character\n", line_count);	//invalid character, return line number of error
 			return NULL; 
 		}
 		//check if newlines should be ; or spaces
@@ -518,17 +518,17 @@ make_command_stream(int(*get_next_byte) (void *),
 		}
 		if( (input_redirect_hit || output_redirect_hit)&& !word_present) 
 		{
-			fprintf(stderr, "%zu: Invalid syntax\n", line_count);	//invalid syntax
+			error(1,0,"%zu: Invalid syntax\n", line_count);
 			return NULL; 
 		}
 		else if (count >= 1 && (output_redirect_hit || input_redirect_hit) && next == '\n' && prev == '\n')
 		{
-			fprintf(stderr, "%zu: Invalid syntax\n", line_count);	//invalid syntax
+			error(1,0,"%zu: Invalid syntax\n", line_count);
 			return NULL; 
 		}
 		else if (count >= 1 && (output_redirect_hit || input_redirect_hit) && !isValidWordChar(next) && next != '\n' && next != ' ')
 		{
-			fprintf(stderr, "%zu: Invalid syntax\n", line_count);	//invalid syntax
+			error(1,0,"%zu: Invalid syntax\n", line_count);
 			return NULL; 
 		}
 		if(input_redirect_hit && word_present)
@@ -547,12 +547,13 @@ make_command_stream(int(*get_next_byte) (void *),
 		//operator related checks
 		if(is_operator(next) && next != '&' && next != '|' && !word_present)
 		{
-			fprintf(stderr, "%zu: Invalid syntax\n", line_count);	//invalid syntax
+			error(1,0,"%zu: Invalid syntax\n", line_count);
 			return NULL; 
 		}
 		if(count >= 2 && is_operator(next) && is_operator(prev) && is_operator(prevprev))
 		{
-			fprintf(stderr, "%zu: Invalid syntax\n", line_count);	//invalid syntax
+			error(1,0,"%zu: Invalid syntax\n", line_count);
+			//fprintf(stderr, "%zu: Invalid syntax\n", line_count);	//invalid syntax
 			return NULL; 
 		}
 

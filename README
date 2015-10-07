@@ -3,7 +3,47 @@ This is a skeleton for CS 111 Lab 1.
 Replace this README file with notes on your implementation.
 Mentions any special features or limitations.
 
-test edit
+Team members:
+Andy (Bo-Yun) Shih
+ID: 404 418 629
+
+Muzammil Khan
+ID: 204 282 448
+
+--------
+
+GENERAL COMMENTS:
+
+This lab took a very long time from start to finish. The main two challenges for us was not understanding the marking method and not being able
+to understand each other's code well. We initially thought that we were supposed to use test-p-ok.sh as an input to ./timetrash, so we ran
+commands like ./timetrash -p test-p-ok.sh. This confused us for quite a while and we wasted a few hours before realizing we simply run ./test-p-ok.sh,
+which gave us nice error messages for simple debugging. Also, it was sometimes difficult to help one another when we ran into trouble, because it was
+difficult to understand each other's code structure.
+
+
+NOTES ON IMPLEMENTATION:
+
+Main.c initially calls make_command_stream. We implement make_command_stream with one giant while-loop that keeps reading in char-by-char from the
+input file. The while loop starts by removing comments and performing simple character checks, to see if any invalid chars are present. Then we perform
+preprocessing by changing difficult patterns such as '&&' into unique chars such as '*'. We also convert newline chars into two cases: if it is interpreted
+as a space we leave it as a newline, otherwise we use the char '~' to replace it. This became very useful when determining new cases. We next check for syntax
+errors such as operators with empty halves. After all the input is read we exit the while-loop and change the entire buffer into a char** by calling
+helper function split_forest. The char** hold a separate for each test case. The command tree structure is not formed yet. We keep track of how many cases there
+are in command_stream->total_cases;
+
+Then, main.c repeatedly calls read_command_stream for each case. For each call, we feed the case string into parse(), which creates a command tree. Parse is
+a recursive function that, when encountered an operator, recursively parses the left half and the right half of the string. After the command tree is created,
+we return it to main and the tree gets printed by print-command.c. When all the test cases are completed (tree-made and printed), the program is done.
+
+
+SIDE-NOTE:
+In the middle of testing, a lot of our errors came from extra spaces before and after simple commands. We were a bit confused at first, but realized the 
+easiest way to solve it was to strip the spaces while processing the inputoutput redirection of the simple commands. So, the function returnInputOutput()
+helped fix many of our spacing issues.
+
+--------
+
+TEAM MEMBER INFO AGAIN:
 
 Team members:
 Andy (Bo-Yun) Shih
@@ -11,3 +51,4 @@ ID: 404 418 629
 
 Muzammil Khan
 ID: 204 282 448
+

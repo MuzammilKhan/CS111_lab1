@@ -550,7 +550,7 @@ make_command_stream(int(*get_next_byte) (void *),
 			fprintf(stderr, "%zu: Invalid syntax\n", line_count);	//invalid syntax
 			return NULL; 
 		}
-		if(count >= 2 && is_operator(next) && is_operator(prev) && is_operator(prev))
+		if(count >= 2 && is_operator(next) && is_operator(prev) && is_operator(prevprev))
 		{
 			fprintf(stderr, "%zu: Invalid syntax\n", line_count);	//invalid syntax
 			return NULL; 

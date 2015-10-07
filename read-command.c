@@ -17,9 +17,47 @@ void* getbyte_arg;
 struct command_stream
 {
 	char* a; //File. Make char* instead of char[] to allow assignment
-	int index; 
-	struct command** forest; // keep a command forest
+        int total_cases;
+        int cur_case;
+	char** forest; // keep a command forest
 };
+
+void  split_forest(struct command_stream* resultStream, char* buffer, int buffer_length) {
+  char** forest = resultStream->forest;
+  int buffer_index = 0;
+  int case_index = 0;
+  int char_index = 0;
+  int found_newline = false;
+  int first_semicolon_index = -1;
+  
+  while (buffer_index < buffer_length) {
+    if (buffer[buffer_index] == EOF)
+      break;
+
+    resultStream->forest[case_index][char_index] = buffer[buffer_index];
+    if (buffer[buffer_index] != '\n')
+      found_newline = false;
+    if (!found_newline && (buffer[buffer_index] == '\n')) {
+      found_newline = true;
+      first_semicolon_index = char_index;
+    }
+    else if (found_newline  && (buffer[buffer_index] == '\n')) { //start next case                                                                               
+      resultStream->forest[case_index][first_semicolon_index] = '\0'; 
+      case_index++;
+      char_index = -1;
+      found_newline = false;
+    }
+    buffer_index++;
+    char_index++;
+  }
+
+  resultStream->forest[case_index][char_index] = '\0';
+  fprintf(stderr, "numcases: %u", case_index);
+  resultStream->total_cases = case_index;
+
+  return;
+
+}
 
 
 int charArrLen(char** str_array) {
@@ -397,7 +435,7 @@ make_command_stream(int(*get_next_byte) (void *),
 	//return 0;
   
 	size_t count = 0;
-	size_t case_count = 1;
+	size_t case_count = 0;
 	size_t buffer_size = 1024;
 	char* buffer = checked_malloc(buffer_size);
 	char next;
@@ -415,6 +453,8 @@ make_command_stream(int(*get_next_byte) (void *),
 	bool word_present = false; //signifies that a word was just made or is being made 
 	bool simple_command_present = false;
 
+
+	char* new_buffer = (char*) checked_malloc(1000000);
 
 	//create and load buffer
 	do
@@ -473,6 +513,8 @@ make_command_stream(int(*get_next_byte) (void *),
 			count--;
 			next = '$';
 		}
+
+		/*
 		else if (count >= 1 && is_operator(prev) && next == '\n') { //newline evaluated as space
 		  next = '\n'; //if newline evaluated as space, just leave it as it is
 		}
@@ -501,6 +543,7 @@ make_command_stream(int(*get_next_byte) (void *),
 		if (count >= 1 && (prev == '~' || prev == ';') && (next == '~' || next == ';')) {
 		        case_count++;
 		}
+		*/
 		//END PREPROCESSING
 
 
@@ -591,6 +634,7 @@ make_command_stream(int(*get_next_byte) (void *),
 			
 			//load buffer
 			buffer[count] = next;
+			new_buffer[count] = next;
 			count++;
 
 			//adjust buffer size
@@ -604,38 +648,43 @@ make_command_stream(int(*get_next_byte) (void *),
 		  {prevprev = prev;}
 
 		prev = next;
-		
 	}while (next > -1);
 
 	//paren syntax check
 	if(open_paren_count != closed_paren_count)
 	{error(1,0,"%zu: Invalid syntax\n", line_count);}
 
+
 	struct command_stream* resultStream = (struct command_stream*) checked_malloc(sizeof(struct command_stream));
-	resultStream->a = (char*) checked_malloc(1000000); //TODO: adjust size
-	resultStream->a = buffer;
-	resultStream->index = case_count;
+	//resultStream->a = (char*) checked_malloc(1000000); //TODO: adjust size
+	//resultStream->a = buffer;
+	resultStream->total_cases = 0; //will be set in split_forest
+	resultStream->cur_case = 0;
 
-	//TODO: REST
-	
+	resultStream->forest = (char**) checked_malloc(500*sizeof(char*));
+	size_t loop_counter;
+	for ( loop_counter = 0; loop_counter < 500; loop_counter++) {
+	  resultStream->forest[loop_counter] = (char*) checked_malloc(1000);
+	}
+
+      	split_forest(resultStream, new_buffer, count);
+	fprintf(stderr,"splitted forest!");
+
 	return resultStream;
-
-	//TODO: return something
 }
 
 
 command_t
 read_command_stream(command_stream_t s)
 {
-  if (s->index == 0)
+  if (s->cur_case > s->total_cases)
     return 0;
 
-  struct command* cmd= parse(s->a);
-	/* FIXME: Replace this with your implementation too.  */
-  s->index--;
+  fprintf(stderr, "%s", s->forest[s->cur_case]);
+  struct command* cmd = parse(s->forest[s->cur_case]);
+  
+  s->cur_case++;
   return cmd;
-
-
 }
 
 void free_command_stream() //TODO

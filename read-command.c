@@ -476,7 +476,7 @@ make_command_stream(int(*get_next_byte) (void *),
 			next = '~';
 		}
 		
-		if (count >= 1 && (next == '\n') //case for else b == word: newline = ";" //NOTE:testing this case 
+		if (count >= 1 && (next == '\n')) //case for else b == word: newline = ";" //NOTE:testing this case 
 		{
 		  
 			int i = count;
@@ -559,7 +559,7 @@ make_command_stream(int(*get_next_byte) (void *),
 		}
 		
 		prev = next;
-	} while (next > -1);
+	}while (next > -1);
 
 	struct command_stream* resultStream = (struct command_stream*) checked_malloc(sizeof(struct command_stream));
 	resultStream->a = (char*) checked_malloc(1000000); //TODO: adjust size

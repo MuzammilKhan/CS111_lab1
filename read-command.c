@@ -522,17 +522,17 @@ make_command_stream(int(*get_next_byte) (void *),
 		}
 		if( (input_redirect_hit || output_redirect_hit)&& !word_present) 
 		{
-			error(1,0,"%zu: Invalid syntax\n", line_count);
+			error(1,0,"%zu: Invalid syntax 1\n", line_count);
 			
 		}
 		else if (count >= 1 && (output_redirect_hit || input_redirect_hit) && next == '\n' && prev == '\n')
 		{
-			error(1,0,"%zu: Invalid syntax\n", line_count);
+			error(1,0,"%zu: Invalid syntax 2\n", line_count);
 			
 		}
 		else if (count >= 1 && ((output_redirect_hit && next != '>' ) || (input_redirect_hit && next != '>')) && !isValidWordChar(next) && next != '\n' && next != ' ')
 		{
-			error(1,0,"%zu: Invalid syntax\n", line_count);
+			error(1,0,"%zu: Invalid syntax 3\n", line_count);
 			
 		}
 		if(input_redirect_hit && word_present)
@@ -552,24 +552,24 @@ make_command_stream(int(*get_next_byte) (void *),
 		//operator related checks
 		if(is_operator(next) && next != '&' && next != '|' && !word_present)
 		{
-			error(1,0,"%zu: Invalid syntax\n", line_count);
+			error(1,0,"%zu: Invalid syntax 4\n", line_count);
 			
 		}
 		if(count >= 1 && ((next == '&' && prev == '&') || (next == '|' && prev == '|')) && !word_present)
 		{
-			error(1,0,"%zu: Invalid syntax\n", line_count);
+			error(1,0,"%zu: Invalid syntax 5\n", line_count);
 		}
 		if(count >= 1 && next == '|' && prev != '|' && !word_present)
 		{
-			error(1,0,"%zu: Invalid syntax\n", line_count);
+			error(1,0,"%zu: Invalid syntax 6\n", line_count);
 		}
 		if(count == 0 && (next == '|' || next == '&' || next == ';'))
 		{
-			error(1,0,"%zu: Invalid syntax\n", line_count);
+			error(1,0,"%zu: Invalid syntax 7\n", line_count);
 		}
 		if(count >= 2 && is_operator(next) && is_operator(prev) && is_operator(prevprev))
 		{
-			error(1,0,"%zu: Invalid syntax\n", line_count);
+			error(1,0,"%zu: Invalid syntax 8\n", line_count);
 			
 		}
 
@@ -608,7 +608,7 @@ make_command_stream(int(*get_next_byte) (void *),
 
 	//paren syntax check
 	if(open_paren_count != closed_paren_count)
-	{error(1,0,"%zu: Invalid syntax\n", line_count);}
+	{error(1,0,"%zu: Invalid syntax 9\n", line_count);}
 
 	struct command_stream* resultStream = (struct command_stream*) checked_malloc(sizeof(struct command_stream));
 	resultStream->a = (char*) checked_malloc(1000000); //TODO: adjust size

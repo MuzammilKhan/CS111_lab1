@@ -410,8 +410,6 @@ make_command_stream(int(*get_next_byte) (void *),
 	int closed_paren_count = 0;
 	bool input_redirect_hit = false; //<
 	bool output_redirect_hit = false; //>
-	bool input_just_set = false;
-	bool output_just_set = false;
 	bool word_present = false; //signifies that a word was just made or is being made 
 
 
@@ -513,14 +511,10 @@ make_command_stream(int(*get_next_byte) (void *),
 		// < > syntax error checks
 
 		if(next == '<')
-			{input_redirect_hit = true; input_just_set = true;}
+			{input_redirect_hit = true;}
 		else if(next == '>')
-			{output_redirect_hit = true; output_just_set = true;}
+			{output_redirect_hit = true;}
 
-		if(input_just_set && next != '<')
-			{input_just_set = false;}
-		if(output_just_set && next != '>')
-			{output_just_set = false;}
 
 		if(output_redirect_hit && isValidWordChar(next))
 		{
@@ -536,7 +530,7 @@ make_command_stream(int(*get_next_byte) (void *),
 			error(1,0,"%zu: Invalid syntax\n", line_count);
 			
 		}
-		else if (count >= 1 && ((output_redirect_hit && !output_just_set ) || (!input_just_set && input_redirect_hit)) && !isValidWordChar(next) && next != '\n' && next != ' ')
+		else if (count >= 1 && ((output_redirect_hit && next != '>' ) || (input_redirect_hit && next != '>')) && !isValidWordChar(next) && next != '\n' && next != ' ')
 		{
 			error(1,0,"%zu: Invalid syntax\n", line_count);
 			

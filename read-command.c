@@ -421,10 +421,6 @@ make_command_stream(int(*get_next_byte) (void *),
 	{
 		next = get_next_byte(get_next_byte_argument);
 		
-		if (next != EOF && isInvalidChar(next)) {		//check for bad characters: any other than a-zA-Z0-9 ! % + , - . / : @ ^ _  ; | && || ( ) < >
-			error(1,0,"%zu: Invalid character\n", line_count);	//invalid character, return line number of error
-			
-		}
 		//check if newlines should be ; or spaces
 		// PSEUDOCODE
 		// char* prev
@@ -462,6 +458,11 @@ make_command_stream(int(*get_next_byte) (void *),
 			} while ((next > -1) && (next != EOF) && (next != '\n'));
 			
 		}
+
+                if (next != EOF && isInvalidChar(next)) {               //check for bad characters: any other than a-zA-Z0-9 ! % + , - . / : @ ^ _  ; | && || ( ) < >                                   
+		  error(1,0,"%zu: Invalid character\n", line_count);      //invalid character, return line number of error                                                                        
+
+                }
 
 		//convert && to * and || to $
 		if (count >= 1 && prev == '&' && next == '&') {
@@ -544,9 +545,12 @@ make_command_stream(int(*get_next_byte) (void *),
 
 		//operator related checks
 
+		//special case
+		bool transformed_operator = (prev == '|' && next == '$') || (prev == '&' && next == '*');
+
                 //if notice a non-word, but operator symbols have not had suffix words, then return error                                                                                              
-                if( operator_hit && (next != prev && next != ' ' && next != '\n' && next != '\t' && !isValidWordChar(next))) {
-                  error(1,0, "%zu, Invalid syntax4\n", line_count);
+                if( operator_hit && ( !transformed_operator  && next != ' ' && next != '\n' && next != '\t' && !isValidWordChar(next))) {
+                  error(1,0, "%zu, Invalid syntax4 prev %c next %c\n", line_count, prev, next);
                 }
 
 		if(is_operator(next))
@@ -555,7 +559,7 @@ make_command_stream(int(*get_next_byte) (void *),
 		//if no prefix command to operator
 		if(is_operator(next) && !simple_command_present)
 		{
-		  error(1,0,"%zu: Invalid syntax3\n", line_count);
+		  error(1,0,"%zu: Invalid syntax3 prev %c next %c\n", line_count, prev, next);
 		}
 
 		//if operator_hit, and we see the start of a simple_command, then set operator_hit to false
@@ -566,7 +570,7 @@ make_command_stream(int(*get_next_byte) (void *),
 		//if too many operators in a row return error
 		if(count >= 2 && is_operator(next) && is_operator(prev) && is_operator(prevprev))
 		{
-		  error(1,0,"%zu: Invalid syntax5\n", line_count);    
+		  error(1,0,"%zu: Invalid syntax5 prevprev %c prev %c next %c\n", line_count, prevprev, prev, next);    
 		}
 
 		//counter increments for paren syntax check after loop
@@ -596,9 +600,10 @@ make_command_stream(int(*get_next_byte) (void *),
 			}
 		}
 		
+                if(count >= 2)
+		  {prevprev = prev;}
+
 		prev = next;
-		if(count >= 2)
-		{prevprev = prev;}
 		
 	}while (next > -1);
 

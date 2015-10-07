@@ -556,6 +556,10 @@ make_command_stream(int(*get_next_byte) (void *),
 		{
 			error(1,0,"%zu: Invalid syntax\n", line_count);
 		}
+		if(count >= 1 && next == '|' && prev != '|' && !word_present)
+		{
+			error(1,0,"%zu: Invalid syntax\n", line_count);
+		}
 		if(count >= 2 && is_operator(next) && is_operator(prev) && is_operator(prevprev))
 		{
 			error(1,0,"%zu: Invalid syntax\n", line_count);

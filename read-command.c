@@ -545,7 +545,7 @@ make_command_stream(int(*get_next_byte) (void *),
 			{word_present = false;}
 
 		//operator related checks
-		if(is_operator(next) && next != '&' && next != '|' & !word_present)
+		if(is_operator(next) && next != '&' && next != '|' && !word_present)
 		{
 			fprintf(stderr, "%zu: Invalid syntax\n", line_count);	//invalid syntax
 			return NULL; 

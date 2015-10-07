@@ -511,15 +511,16 @@ make_command_stream(int(*get_next_byte) (void *),
 		//SYNTAX CHECKING   //TODO:COMPLETE THIS
 
 		// < > syntax error checks
-		if(input_just_set && next != '<')
-			{input_just_set = false;}
-		if(output_just_set && next != '>')
-			{output_just_set = false;}
 
 		if(next == '<')
 			{input_redirect_hit = true; input_just_set = true;}
 		else if(next == '>')
 			{output_redirect_hit = true; output_just_set = true;}
+
+		if(input_just_set && next != '<')
+			{input_just_set = false;}
+		if(output_just_set && next != '>')
+			{output_just_set = false;}
 
 		if(output_redirect_hit && isValidWordChar(next))
 		{

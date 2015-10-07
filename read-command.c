@@ -402,6 +402,7 @@ make_command_stream(int(*get_next_byte) (void *),
 	char* buffer = checked_malloc(buffer_size);
 	char next;
 	char prev;
+	char prevprev;
 	size_t line_count = 0;
 
 	//bools used for syntax checking
@@ -504,19 +505,17 @@ make_command_stream(int(*get_next_byte) (void *),
 
 
 		//SYNTAX CHECKING   //TODO:COMPLETE THIS
+
+		// < > syntax error checks
 		if(next == '<')
 			{input_redirect_hit = true;}
 		else if(next == '>')
 			{output_redirect_hit = true;}
 
-
-
 		if(output_redirect_hit && isValidWordChar(next))
 		{
 			output_redirect_hit = false;
 		}
-
-
 		if( (input_redirect_hit || output_redirect_hit)&& !word_present) 
 		{
 			fprintf(stderr, "%zu: Invalid syntax\n", line_count);	//invalid syntax
@@ -532,12 +531,10 @@ make_command_stream(int(*get_next_byte) (void *),
 			fprintf(stderr, "%zu: Invalid syntax\n", line_count);	//invalid syntax
 			return NULL; 
 		}
-
 		if(input_redirect_hit && word_present)
 		{
 			input_redirect_hit = false;
 		}
-		
 		if(word_present && (next == ' ' || next == '\n'))
 		{
 			word_present = true;
@@ -546,6 +543,19 @@ make_command_stream(int(*get_next_byte) (void *),
 			{word_present = true;}
 		else
 			{word_present = false;}
+
+		//operator related checks
+		if(is_operator(next) && next != '&' && next != '|' & !word_present)
+		{
+			fprintf(stderr, "%zu: Invalid syntax\n", line_count);	//invalid syntax
+			return NULL; 
+		}
+		if(count >= 2 && is_operator(next) && is_operator(prev) && is_operator(prev))
+		{
+			fprintf(stderr, "%zu: Invalid syntax\n", line_count);	//invalid syntax
+			return NULL; 
+		}
+
 
 		//END SYNTAX CHECKING
 
@@ -568,6 +578,9 @@ make_command_stream(int(*get_next_byte) (void *),
 		}
 		
 		prev = next;
+		if(count >= 2)
+		{prevprev = prev;}
+		
 	}while (next > -1);
 
 	struct command_stream* resultStream = (struct command_stream*) checked_malloc(sizeof(struct command_stream));

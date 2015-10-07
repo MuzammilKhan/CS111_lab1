@@ -522,12 +522,12 @@ make_command_stream(int(*get_next_byte) (void *),
 			fprintf(stderr, "%zu: Invalid syntax\n", line_count);	//invalid syntax
 			return NULL; 
 		}
-		else if ((output_redirect_hit || input_redirect_hit) && next == '\n' && prev == '\n')
+		else if (count >= 1 && (output_redirect_hit || input_redirect_hit) && next == '\n' && prev == '\n')
 		{
 			fprintf(stderr, "%zu: Invalid syntax\n", line_count);	//invalid syntax
 			return NULL; 
 		}
-		else if ((output_redirect_hit || input_redirect_hit) && !isValidWordChar(next) && next != '\n' && next != ' ')
+		else if (count >= 1 && (output_redirect_hit || input_redirect_hit) && !isValidWordChar(next) && next != '\n' && next != ' ')
 		{
 			fprintf(stderr, "%zu: Invalid syntax\n", line_count);	//invalid syntax
 			return NULL; 
@@ -538,7 +538,11 @@ make_command_stream(int(*get_next_byte) (void *),
 			input_redirect_hit = false;
 		}
 		
-		if(isValidWordChar(next))
+		if(word_present && (next == ' ' || next == '\n'))
+		{
+			word_present = true;
+		}
+		else if(isValidWordChar(next))
 			{word_present = true;}
 		else
 			{word_present = false;}

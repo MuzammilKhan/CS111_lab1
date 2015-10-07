@@ -504,7 +504,7 @@ make_command_stream(int(*get_next_byte) (void *),
 
 
 		//SYNTAX CHECKING   //TODO:COMPLETE THIS
-		if(next == '<' && word_present)
+		if(next == '<')
 			{input_redirect_hit = true;}
 		else if(next == '>')
 			{output_redirect_hit = true;}

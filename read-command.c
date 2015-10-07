@@ -410,7 +410,10 @@ make_command_stream(int(*get_next_byte) (void *),
 	int closed_paren_count = 0;
 	bool input_redirect_hit = false; //<
 	bool output_redirect_hit = false; //>
+	bool operator_hit = false;
+	bool operator_finished = false;
 	bool word_present = false; //signifies that a word was just made or is being made 
+	bool simple_command_present = false;
 
 
 	//create and load buffer
@@ -485,16 +488,10 @@ make_command_stream(int(*get_next_byte) (void *),
 			int i = count;
 			bool is_semicolon = true;
 			do{
-
-				if(!isValidWordChar(buffer[i]))
-				{
-					is_semicolon = false;
-					break;
-				}
 				i--;
 			}while(buffer[i] != ' ' && buffer[i] != '\t' && buffer[i] != '\n' && buffer[i] != '~' && i > -1);
 		  
-		  	if(is_semicolon)
+		  	if(isValidWordChar(buffer[i]))  //if previous a word, then newline should be semicolon
 		  	{
 		  		next = '~';
 		  	}
@@ -510,67 +507,66 @@ make_command_stream(int(*get_next_byte) (void *),
 
 		// < > syntax error checks
 
+                //if notice a non-word, but input/output symbols have not had suffix words, then return error                                                                                         
+                if( (input_redirect_hit || output_redirect_hit) && (next != ' ' && next != '\n' && next != '\t' && !isValidWordChar(next))) {
+                  error(1,0, "%zu, Invalid syntax2 char %c", line_count,next);
+                }
+
+
 		if(next == '<')
 			{input_redirect_hit = true;}
 		else if(next == '>')
 			{output_redirect_hit = true;}
 
+                //if notice a break, reset word_present                                                                                                                                                
+                if( next == ';' || next == '~' || next == '\n') {
+                  word_present = false;
+		  simple_command_present = false;
+		}
 
-		if(output_redirect_hit && isValidWordChar(next))
-		{
-			output_redirect_hit = false;
+		//if a wordchar, word_present is true
+		if (isValidWordChar(next)) {
+		  word_present = true;
+		  simple_command_present = true;
 		}
-		if( (input_redirect_hit || output_redirect_hit)&& !word_present) 
-		{
-			error(1,0,"%zu: Invalid syntax\n", line_count);
-			
-		}
-		else if (count >= 1 && (output_redirect_hit || input_redirect_hit) && next == '\n' && prev == '\n')
-		{
-			error(1,0,"%zu: Invalid syntax\n", line_count);
-			
-		}
-		else if (count >= 1 && ((output_redirect_hit && next != '>' ) || (input_redirect_hit && next != '>')) && !isValidWordChar(next) && next != '\n' && next != ' ')
-		{
-			error(1,0,"%zu: Invalid syntax\n", line_count);
-			
-		}
-		if(input_redirect_hit && word_present)
-		{
-			input_redirect_hit = false;
-		}
-		if(word_present && (next == ' ' || next == '\n'))
-		{
-			word_present = true;
-		}
-		else if(isValidWordChar(next))
-			{word_present = true;}
-		else
-			{word_present = false;}
 
+		//if input/output symbols are read, immediately return error if there is no prefix word
+		if ( (input_redirect_hit || output_redirect_hit) && !word_present) {
+		  error(1,0, "%zu, Invalid syntax1", line_count);
+		}
+
+		//if notice a wordchar, then set input/output hit to false
+		if(isValidWordChar(next))
+		{
+		  input_redirect_hit = false;
+		  output_redirect_hit = false;
+		}
 
 		//operator related checks
-		if(is_operator(next) && next != '&' && next != '|' && !word_present)
+
+                //if notice a non-word, but operator symbols have not had suffix words, then return error                                                                                              
+                if( operator_hit && (next != prev && next != ' ' && next != '\n' && next != '\t' && !isValidWordChar(next))) {
+                  error(1,0, "%zu, Invalid syntax4\n", line_count);
+                }
+
+		if(is_operator(next))
+		  operator_hit = true;
+
+		//if no prefix command to operator
+		if(is_operator(next) && !simple_command_present)
 		{
-			error(1,0,"%zu: Invalid syntax\n", line_count);
-			
+		  error(1,0,"%zu: Invalid syntax3\n", line_count);
 		}
-		if(count >= 1 && ((next == '&' && prev == '&') || (next == '|' && prev == '|')) && !word_present)
-		{
-			error(1,0,"%zu: Invalid syntax\n", line_count);
+
+		//if operator_hit, and we see the start of a simple_command, then set operator_hit to false
+		if(operator_hit == true && isValidWordChar(next)) {
+		  operator_hit = false;
 		}
-		if(count >= 1 && next == '|' && prev != '|' && !word_present)
-		{
-			error(1,0,"%zu: Invalid syntax\n", line_count);
-		}
-		if(count == 0 && (next == '|' || next == '&' || next == ';'))
-		{
-			error(1,0,"%zu: Invalid syntax\n", line_count);
-		}
+
+		//if too many operators in a row return error
 		if(count >= 2 && is_operator(next) && is_operator(prev) && is_operator(prevprev))
 		{
-			error(1,0,"%zu: Invalid syntax\n", line_count);
-			
+		  error(1,0,"%zu: Invalid syntax5\n", line_count);    
 		}
 
 		//counter increments for paren syntax check after loop

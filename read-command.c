@@ -702,7 +702,7 @@ void free_command_stream(command_stream_t stream) //TODO: check this
 	}
 
 	//free command stream struct
-	free(stream-a);
+	free(stream->a);
 	return;
 }
 

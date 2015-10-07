@@ -687,13 +687,35 @@ read_command_stream(command_stream_t s)
   return cmd;
 }
 
-void free_command_stream() //TODO
+void free_command_stream(command_stream_t stream) //TODO: check this
 {
+	//free buffer
+	free(stream->a);
+
+	//free forest
+	int i = 0;
+	while(stream->forest[i] != NULL)
+	{
+		//free tree
+		free(stream->forest[i]);
+		i++;
+	}
+
+	//free command stream struct
+	free(stream-a);
 	return;
 }
 
-void free_word_stream() //TODO
+void free_word_stream(char ** stream) //TODO: check this
 {
-  //TODO
+	int i = 0;
+	while(stream[i] != NULL) //free words
+	{
+		free(stream[i]);
+		i++;
+	}
+
+	//free array holding words
+	free(stream);
 	return;
 }

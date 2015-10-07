@@ -9,3 +9,6 @@ Points to address:
 -I/O pointers
 - address this "Note that this does not apply for the case of newline on the left side the PIPE, AND, OR. In these cases, it is considered as invalid."
 -free stream->a after everything is done
+
+-remove number from the error msgs
+- call the 2 free funcs

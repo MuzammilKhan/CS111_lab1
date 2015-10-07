@@ -54,7 +54,6 @@ void  split_forest(struct command_stream* resultStream, char* buffer, int buffer
   }
 
   resultStream->forest[case_index][char_index] = '\0';
-  fprintf(stderr, "numcases: %u", case_index);
   resultStream->total_cases = case_index;
 
   return;
@@ -146,8 +145,9 @@ char* returnInputOutput( char* input, char delimiter) {
     char_index++;
   }
 
+  bool no_input_output = false;
   if (char_index == total_length-1 || char_index == total_length)
-    return NULL;
+    no_input_output = true;
 
   int new_index;
   int counter = 0;
@@ -178,11 +178,15 @@ char* returnInputOutput( char* input, char delimiter) {
     index_from_end--;
   }
 
-  //remove tildas from index
+  //remove tildas and initial spaces from index
+  keep_removing_spaces = true; // reuse from above
   int temp_index = 0;
   int temp_counter = 0;
   while (input[temp_index] != '\0') {
-    if (input[temp_index] != '~') {
+    if (isValidWordChar(input[temp_index])) {
+      keep_removing_spaces = false;
+    }
+    if (input[temp_index] != '~' && !keep_removing_spaces) {
       input[temp_counter] = input[temp_index];
       temp_counter++;
     }
@@ -192,6 +196,8 @@ char* returnInputOutput( char* input, char delimiter) {
 
   //update the input we want, and delete the old input
 
+  if (no_input_output)
+    return NULL;
   return inputOutput;
 }
 
@@ -380,11 +386,9 @@ parse(char* input)
 	    	//set input and output
 	  	// MUST SET OUTPUT FIRST, OR ELSE WILL NOT WORK. OUTPUT IS ALWAYS WRITTEN
 	  	// AFTER INPUT IN LAB SPECS, SO MUST BE CHECKED FIRST
-	  printf("input is : %s \n", input);
 	  	cmd->output =  returnInputOutput(input, '>');
 	  	cmd->input = returnInputOutput(input, '<');
 
-		printf("input is : %s \n", input);
 		char** str_array = make_word_stream(input);
 
  		cmd->type = SIMPLE_COMMAND;
@@ -417,29 +421,29 @@ parse(char* input)
 				switch(current_char)
 				{
 					case ';':
-					  if (operator != ';') {    //if operator is not ;, since left right associativity
+					  if (1) {    //if operator is not ;, since left right associativity
 					    operator = ';';
 					    operator_index = index;
 					  }
 					  break;
-					case '|':
-					  if (operator != ';' && operator != '|') {    //left-right associativity
-					    operator = '|';
-					    operator_index = index;
-					  }
-					  break;
 					case '*': //&&
-					  if (operator != '*' && operator != '$') {    //if operator hasn't been set yet
+					  if (operator != ';') {    //if operator ';' hasn't been set yet
 					    operator = '*';
 					    operator_index = index;
 					  } 
 					  break;
 					case '$': //||
-					  if (operator != '*' && operator != '$') {    //if operator hasn't been set yet
+					  if (operator != ';') {    //if operator ';' hasn't been set yet
 					    operator = '$';
 					    operator_index = index;
 					  }
 					  break;
+			            	case '|':
+				          if (operator != ';' && operator != '*' && operator != '$') {    //left-right associativity                           
+				            operator = '|';
+				            operator_index = index;
+				          }
+				          break;
 					default:
 					  break;
 				}
@@ -735,7 +739,6 @@ make_command_stream(int(*get_next_byte) (void *),
 	}
 
       	split_forest(resultStream, new_buffer, count);
-	fprintf(stderr,"splitted forest!\n");
 
 	return resultStream;
 }
@@ -747,7 +750,6 @@ read_command_stream(command_stream_t s)
   if (s->cur_case > s->total_cases)
     return 0;
 
-  fprintf(stderr, "%s", s->forest[s->cur_case]);
   struct command* cmd = parse(s->forest[s->cur_case]);
   
   s->cur_case++;

@@ -14,6 +14,8 @@
 int (*getbyte) (void*);
 void* getbyte_arg;
 
+bool isValidWordChar(char c);
+
 struct command_stream
 {
 	char* a; //File. Make char* instead of char[] to allow assignment
@@ -27,7 +29,7 @@ void  split_forest(struct command_stream* resultStream, char* buffer, int buffer
   int buffer_index = 0;
   int case_index = 0;
   int char_index = 0;
-  int found_newline = false;
+  int found_semicolon = false;
   int first_semicolon_index = -1;
   
   while (buffer_index < buffer_length) {
@@ -35,17 +37,17 @@ void  split_forest(struct command_stream* resultStream, char* buffer, int buffer
       break;
 
     resultStream->forest[case_index][char_index] = buffer[buffer_index];
-    if (buffer[buffer_index] != '\n')
-      found_newline = false;
-    if (!found_newline && (buffer[buffer_index] == '\n')) {
-      found_newline = true;
+    if (buffer[buffer_index] != '~' && buffer[buffer_index] != ';')
+      found_semicolon = false;
+    if (!found_semicolon && (buffer[buffer_index] == '~' || buffer[buffer_index] == ';')) {
+      found_semicolon = true;
       first_semicolon_index = char_index;
     }
-    else if (found_newline  && (buffer[buffer_index] == '\n')) { //start next case                                                                               
+    else if (found_semicolon  && (buffer[buffer_index] == '~' || buffer[buffer_index] == ';')) { //start next case                                                 
       resultStream->forest[case_index][first_semicolon_index] = '\0'; 
       case_index++;
       char_index = -1;
-      found_newline = false;
+      found_semicolon = false;
     }
     buffer_index++;
     char_index++;
@@ -69,7 +71,7 @@ int charArrLen(char** str_array) {
 	}
 	return i;
 }
-
+/*
 char* returnInputOutput (char** str_array, char delimiter) {
 // when delimiter == '<', this function checks for input
 // when delimiter == '>', this function checks for output
@@ -130,6 +132,67 @@ char* returnInputOutput (char** str_array, char delimiter) {
 	str_array[charArrLen(str_array)-1] = NULL;
 	
 	return subword_after_symbol;
+}
+*/
+
+char* returnInputOutput( char* input, char delimiter) {
+
+  int char_index = 0;
+  int total_length = strlen(input);
+
+  while ( char_index < total_length) {
+    if (input[char_index] == delimiter)
+      break;
+    char_index++;
+  }
+
+  if (char_index == total_length-1 || char_index == total_length)
+    return NULL;
+
+  int new_index;
+  int counter = 0;
+  char* inputOutput = (char*) checked_malloc(total_length);
+  bool keep_removing_spaces = true;
+  for (new_index = char_index + 1; new_index < total_length; new_index++) {
+    if (isValidWordChar(input[new_index]))
+      keep_removing_spaces = false;
+    if (!keep_removing_spaces && input[new_index] != '~') { //strip initial spaces;
+      inputOutput[counter] = input[new_index];
+      counter++;
+    }
+  }
+  
+  inputOutput[counter] = '\0';
+  input[char_index] = '\0';
+
+  //strip final spaces
+  int index_from_end = counter - 1;
+  while (inputOutput[index_from_end] == ' ' || inputOutput[index_from_end] == '\n' || inputOutput[index_from_end] == '\t') {
+    inputOutput[index_from_end] = '\0';
+    index_from_end--;
+  }
+
+  index_from_end = char_index - 1;
+  while (input[index_from_end] == ' ' || input[index_from_end] == '\n' || input[index_from_end] == '\t') {
+    input[index_from_end] = '\0';
+    index_from_end--;
+  }
+
+  //remove tildas from index
+  int temp_index = 0;
+  int temp_counter = 0;
+  while (input[temp_index] != '\0') {
+    if (input[temp_index] != '~') {
+      input[temp_counter] = input[temp_index];
+      temp_counter++;
+    }
+    temp_index++;
+  }
+  input[temp_counter] = '\0';
+
+  //update the input we want, and delete the old input
+
+  return inputOutput;
 }
 
 bool isInvalidChar (char c) {
@@ -298,14 +361,14 @@ parse(char* input)
 	
 	if(is_subshell(input)) //subshell case
 	{ 
-	  	char** str_array = make_word_stream(input);
-	  
 	  	//set input and output
 	  	// MUST SET OUTPUT FIRST, OR ELSE WILL NOT WORK. OUTPUT IS ALWAYS WRITTEN
 	  	// AFTER INPUT IN LAB SPECS, SO MUST BE CHECKED FIRST
-	  	cmd->output =  returnInputOutput(str_array, '>');
-	  	cmd->input = returnInputOutput(str_array, '<');
+	  	cmd->output =  returnInputOutput(input, '>');
+	  	cmd->input = returnInputOutput(input, '<');
 	  	
+                char** str_array = make_word_stream(input);
+
 		cmd->type = SUBSHELL_COMMAND;
 		cmd->status = -1;
 		strip_first_and_last(input); //removes brackets
@@ -314,13 +377,15 @@ parse(char* input)
 	}
 	else if(!contains_operator(input)) //simple command
 	{
-	  	char** str_array = make_word_stream(input);
-	  
-	  	//set input and output
+	    	//set input and output
 	  	// MUST SET OUTPUT FIRST, OR ELSE WILL NOT WORK. OUTPUT IS ALWAYS WRITTEN
 	  	// AFTER INPUT IN LAB SPECS, SO MUST BE CHECKED FIRST
-	  	cmd->output =  returnInputOutput(str_array, '>');
-	  	cmd->input = returnInputOutput(str_array, '<');
+	  printf("input is : %s \n", input);
+	  	cmd->output =  returnInputOutput(input, '>');
+	  	cmd->input = returnInputOutput(input, '<');
+
+		printf("input is : %s \n", input);
+		char** str_array = make_word_stream(input);
 
  		cmd->type = SIMPLE_COMMAND;
 		cmd->status = -1;
@@ -364,13 +429,13 @@ parse(char* input)
 					  }
 					  break;
 					case '*': //&&
-					  if (operator == '\0') {    //if operator hasn't been set yet
+					  if (operator != '*' && operator != '$') {    //if operator hasn't been set yet
 					    operator = '*';
 					    operator_index = index;
 					  } 
 					  break;
 					case '$': //||
-					  if (operator == '\0') {    //if operator hasn't been set yet
+					  if (operator != '*' && operator != '$') {    //if operator hasn't been set yet
 					    operator = '$';
 					    operator_index = index;
 					  }
@@ -514,14 +579,8 @@ make_command_stream(int(*get_next_byte) (void *),
 			next = '$';
 		}
 
-		/*
-		else if (count >= 1 && is_operator(prev) && next == '\n') { //newline evaluated as space
-		  next = '\n'; //if newline evaluated as space, just leave it as it is
-		}
-		else if (count >= 1 && prev == '(' && next == '\n') { //newline evaluated as space
-		  next = '\n'; //if newline evaluated as space, just leave it as it is
-		}
-		else if (count >= 1 && prev == ')' && next == '\n') { //newline evaluated as ";"
+		
+      		else if (count >= 1 && prev == ')' && next == '\n') { //newline evaluated as ";"
 			next = '~';
 		}
 		
@@ -529,21 +588,29 @@ make_command_stream(int(*get_next_byte) (void *),
 		{
 		  
 			int i = count;
-			bool is_semicolon = true;
-			do{
-				i--;
-			}while(buffer[i] != ' ' && buffer[i] != '\t' && buffer[i] != '\n' && buffer[i] != '~' && i > -1);
-		  
-		  	if(isValidWordChar(buffer[i]))  //if previous a word, then newline should be semicolon
-		  	{
-		  		next = '~';
-		  	}
+			
+			while(i > 0) {
+			  i--;
+			  
+			  if (isValidWordChar(buffer[i]) || buffer[i] == ')') {
+			    next = '~';
+			    break;
+			  }
+			  if (is_operator(buffer[i]) || buffer[i] == '<' || buffer[i] == '>' || buffer[i] == '(') {
+			    next = '\n';
+			    break;
+			  }
+     			}
+
+			if (i == 0) {
+			  next = '\n';
+			}
 		}
 
 		if (count >= 1 && (prev == '~' || prev == ';') && (next == '~' || next == ';')) {
 		        case_count++;
 		}
-		*/
+		
 		//END PREPROCESSING
 
 
@@ -668,7 +735,7 @@ make_command_stream(int(*get_next_byte) (void *),
 	}
 
       	split_forest(resultStream, new_buffer, count);
-	fprintf(stderr,"splitted forest!");
+	fprintf(stderr,"splitted forest!\n");
 
 	return resultStream;
 }

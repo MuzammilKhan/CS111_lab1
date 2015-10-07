@@ -405,7 +405,9 @@ make_command_stream(int(*get_next_byte) (void *),
 	char prevprev;
 	size_t line_count = 0;
 
-	//bools used for syntax checking
+	//variables used for syntax checking
+	int open_paren_count = 0;
+	int closed_paren_count = 0;
 	bool input_redirect_hit = false; //<
 	bool output_redirect_hit = false; //>
 	bool word_present = false; //signifies that a word was just made or is being made 
@@ -418,7 +420,7 @@ make_command_stream(int(*get_next_byte) (void *),
 		
 		if (next != EOF && isInvalidChar(next)) {		//check for bad characters: any other than a-zA-Z0-9 ! % + , - . / : @ ^ _  ; | && || ( ) < >
 			error(1,0,"%zu: Invalid character\n", line_count);	//invalid character, return line number of error
-			return NULL; 
+			
 		}
 		//check if newlines should be ; or spaces
 		// PSEUDOCODE
@@ -519,17 +521,17 @@ make_command_stream(int(*get_next_byte) (void *),
 		if( (input_redirect_hit || output_redirect_hit)&& !word_present) 
 		{
 			error(1,0,"%zu: Invalid syntax\n", line_count);
-			return NULL; 
+			
 		}
 		else if (count >= 1 && (output_redirect_hit || input_redirect_hit) && next == '\n' && prev == '\n')
 		{
 			error(1,0,"%zu: Invalid syntax\n", line_count);
-			return NULL; 
+			
 		}
 		else if (count >= 1 && (output_redirect_hit || input_redirect_hit) && !isValidWordChar(next) && next != '\n' && next != ' ')
 		{
 			error(1,0,"%zu: Invalid syntax\n", line_count);
-			return NULL; 
+			
 		}
 		if(input_redirect_hit && word_present)
 		{
@@ -548,17 +550,22 @@ make_command_stream(int(*get_next_byte) (void *),
 		if(is_operator(next) && next != '&' && next != '|' && !word_present)
 		{
 			error(1,0,"%zu: Invalid syntax\n", line_count);
-			return NULL; 
+			
 		}
 		if(count >= 2 && is_operator(next) && is_operator(prev) && is_operator(prevprev))
 		{
 			error(1,0,"%zu: Invalid syntax\n", line_count);
-			//fprintf(stderr, "%zu: Invalid syntax\n", line_count);	//invalid syntax
-			return NULL; 
+			
 		}
 
+		//counter increments for paren syntax check after loop
+		if(next == '(')
+			{open_paren_count++;}
+		else if (next == ')')
+			{closed_paren_count++;}
 
-		//END SYNTAX CHECKING
+		//END SYNTAX CHECKING  //ONE MORE SYNTAX CHECK AFTER LOOP
+
 
 		
 		//buffer loading and resizing
@@ -583,6 +590,10 @@ make_command_stream(int(*get_next_byte) (void *),
 		{prevprev = prev;}
 		
 	}while (next > -1);
+
+	//paren syntax check
+	if(open_paren_count != closed_paren_count)
+	{error(1,0,"%zu: Invalid syntax\n", line_count);}
 
 	struct command_stream* resultStream = (struct command_stream*) checked_malloc(sizeof(struct command_stream));
 	resultStream->a = (char*) checked_malloc(1000000); //TODO: adjust size

@@ -404,6 +404,12 @@ make_command_stream(int(*get_next_byte) (void *),
 	char prev;
 	size_t line_count = 0;
 
+	//bools used for syntax checking
+	bool input_redirect_hit = false; //<
+	bool output_redirect_hit = false; //>
+	bool word_present = false; //signifies that a word was just made or is being made 
+
+
 	//create and load buffer
 	do
 	{
@@ -411,7 +417,7 @@ make_command_stream(int(*get_next_byte) (void *),
 		
 		if (next != EOF && isInvalidChar(next)) {		//check for bad characters: any other than a-zA-Z0-9 ! % + , - . / : @ ^ _  ; | && || ( ) < >
 			fprintf(stderr, "%zu: Invalid character\n", line_count);	//invalid character, return line number of error
-			return NULL;
+			return -1;
 		}
 		//check if newlines should be ; or spaces
 		// PSEUDOCODE
@@ -438,6 +444,8 @@ make_command_stream(int(*get_next_byte) (void *),
 		// if \n is ;, convert the \n to - (pseudo-semicolon)
 		// if \n is space, convert the \n to =	(psuedo-space)
 		
+
+		//PREPROCESSING
 
 		//check for comments and remove them
 		if (next == '#')   //TODO: what about ordinary token right before # ???? //TODO: are we supposed to let "'" through otherwise stuff like echo '#lol' will fail what about """
@@ -468,13 +476,14 @@ make_command_stream(int(*get_next_byte) (void *),
 			next = '~';
 		}
 		
-		if (count >= 1 && (next == ';' || next == '~')) //case for else b == word: newline = ";" //NOTE:testing this case 
+		if (count >= 1 && (next == '\n') //case for else b == word: newline = ";" //NOTE:testing this case 
 		{
 		  
 			int i = count;
 			bool is_semicolon = true;
 			do{
-				if(!isValidWordChar(buffer[i]) && next != EOF)
+
+				if(!isValidWordChar(buffer[i]))
 				{
 					is_semicolon = false;
 					break;
@@ -491,7 +500,47 @@ make_command_stream(int(*get_next_byte) (void *),
 		if (count >= 1 && (prev == '~' || prev == ';') && (next == '~' || next == ';')) {
 		        case_count++;
 		}
+		//END PREPROCESSING
 
+
+		//SYNTAX CHECKING   //TODO:COMPLETE THIS
+		if(next == '<' && word_present)
+			{input_redirect_hit = true;}
+		else if(next == '>')
+			{output_redirect_hit = true;}
+
+
+
+		if(output_redirect_hit && isValidWordChar(next))
+		{
+			output_redirect_hit = false;
+		}
+
+
+		if(input_redirect_hit && !word_present) 
+		{
+			fprintf(stderr, "%zu: Invalid syntax\n", line_count);	//invalid syntax
+			return -1;
+		}
+		else if (output_redirect_hit && next == '\n' && prev == '\n')
+		{
+			fprintf(stderr, "%zu: Invalid syntax\n", line_count);	//invalid syntax
+			return -1;
+		}
+
+		if(input_redirect_hit && word_present)
+		{
+			input_redirect_hit = false;
+		}
+		
+		if(isValidWordChar(next))
+			{word_present = true;}
+		else
+			{word_present = false;}
+
+		//END SYNTAX CHECKING
+
+		
 		//buffer loading and resizing
 		if(next > -1)
 		{

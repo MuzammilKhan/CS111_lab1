@@ -795,21 +795,21 @@ void free_command(struct command c)
     		free_command(*(c.u.command[0]);
     	}
 
-    	if(c.command[1] != NULL)
+    	if(c.u.command[1] != NULL)
     	{
     		free_command(*(c.u.command[1]));
     	}
 
     	break;
     	case SIMPLE_COMMAND:      // a simple command
-    	if(c.word != NULL)
+    	if(c.u.word != NULL)
     	{
     		free_word_stream(c.u.word);
     	}
 
     	break;
     	case SUBSHELL_COMMAND:    // ( A )
-    	if( != NULL)
+    	if( c.u.subshell_command != NULL)
     	{
     		free_command(*(c.u.subshell_command));
     	}
@@ -820,7 +820,7 @@ void free_command(struct command c)
 }
 
 
-void free_command_stream(struct command_stream_t stream) //TODO: check this
+void free_command_stream(struct command_stream* stream) //TODO: check this
 {
 	//free buffer
 	free(stream->a);

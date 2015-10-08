@@ -756,24 +756,7 @@ read_command_stream(command_stream_t s)
   return cmd;
 }
 
-void free_command_stream(command_stream_t stream) //TODO: check this
-{
-	//free buffer
-	free(stream->a);
 
-	//free forest
-	int i = 0;
-	while(stream->forest[i] != NULL)
-	{
-		//free tree
-		free(stream->forest[i]);
-		i++;
-	}
-
-	//free command stream struct
-	free(stream->a);
-	return;
-}
 
 void free_word_stream(char ** stream) //TODO: check this
 {
@@ -786,5 +769,74 @@ void free_word_stream(char ** stream) //TODO: check this
 
 	//free array holding words
 	free(stream);
+	return;
+}
+
+void free_command(struct command c)
+{
+	if(c.input != NULL)
+	{
+		free_word_stream(c.input);
+	}
+	if(c.output != NULL)
+	{
+		free_word_stream(c.output);
+	}
+
+	switch(c.type)
+	{
+		case AND_COMMAND:         // A && B
+    	case SEQUENCE_COMMAND:    // A ; B
+     	case OR_COMMAND:         // A || B
+    	case PIPE_COMMAND:        // A | B
+
+    	if(c.command[0] != NULL)
+    	{
+    		free_command(*(command[0]);
+    	}
+
+    	if(c.command[1] != NULL)
+    	{
+    		free_command(*(command[1]);
+    	}
+
+    	break;
+    	case SIMPLE_COMMAND:      // a simple command
+    	if(c.word != NULL)
+    	{
+    		free_word_stream(c.word);
+    	}
+
+    	break;
+    	case SUBSHELL_COMMAND:    // ( A )
+    	if( != NULL)
+    	{
+    		free_command(*(c.subshell_command));
+    	}
+    	break;
+    	default:
+    	break;
+	}
+}
+
+
+void free_command_stream(struct command_stream_t stream) //TODO: check this
+{
+	//free buffer
+	free(stream->a);
+
+	//free forest
+	int i = 0;
+	while(stream->forest[i] != NULL)
+	{
+		//free tree
+
+		free_command(stream->forest[i]);
+
+		i++;
+	}
+
+	//free command stream struct
+	free(stream->a);
 	return;
 }

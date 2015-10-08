@@ -18,7 +18,6 @@ bool isValidWordChar(char c);
 
 struct command_stream
 {
-	char* a; //File. Make char* instead of char[] to allow assignment
         int total_cases;
         int cur_case;
 	char** forest; // keep a command forest
@@ -727,8 +726,6 @@ make_command_stream(int(*get_next_byte) (void *),
 
 
 	struct command_stream* resultStream = (struct command_stream*) checked_malloc(sizeof(struct command_stream));
-	//resultStream->a = (char*) checked_malloc(1000000); //TODO: adjust size
-	//resultStream->a = buffer;
 	resultStream->total_cases = 0; //will be set in split_forest
 	resultStream->cur_case = 0;
 
@@ -743,12 +740,23 @@ make_command_stream(int(*get_next_byte) (void *),
 	return resultStream;
 }
 
+void free_command_stream(struct command_stream* s) {
+  int i;
+  for ( i = 0; i < s->total_cases; i++) {
+    free(s->forest[i]);
+  }
+  free(s->forest);
+  free(s);
+  return;
+}
 
 command_t
 read_command_stream(command_stream_t s)
 {
-  if (s->cur_case > s->total_cases)
+  if (s->cur_case > s->total_cases) {
+    free_command_stream(s);
     return 0;
+  }
 
   struct command* cmd = parse(s->forest[s->cur_case]);
   
@@ -758,20 +766,7 @@ read_command_stream(command_stream_t s)
 
 
 
-void free_word_stream(char ** stream) //TODO: check this
-{
-	int i = 0;
-	while(stream[i] != NULL) //free words
-	{
-		free(stream[i]);
-		i++;
-	}
-
-	//free array holding words
-	free(stream);
-	return;
-}
-
+/*
 void free_command(struct command c)
 {
 	if(c.input != NULL)
@@ -822,9 +817,6 @@ void free_command(struct command c)
 
 void free_command_stream(struct command_stream* stream) //TODO: check this
 {
-	//free buffer
-	free(stream->a);
-
 	//free forest
 	int i = 0;
 	while(stream->forest[i] != NULL)
@@ -836,7 +828,7 @@ void free_command_stream(struct command_stream* stream) //TODO: check this
 		i++;
 	}
 
-	//free command stream struct
-	free(stream->a);
+	free(stream);
 	return;
 }
+*/

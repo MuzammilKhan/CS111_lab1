@@ -790,28 +790,28 @@ void free_command(struct command c)
      	case OR_COMMAND:         // A || B
     	case PIPE_COMMAND:        // A | B
 
-    	if(c.command[0] != NULL)
+    	if(c.u.command[0] != NULL)
     	{
-    		free_command(*(command[0]);
+    		free_command(*(c.u.command[0]);
     	}
 
     	if(c.command[1] != NULL)
     	{
-    		free_command(*(command[1]);
+    		free_command(*(c.u.command[1]));
     	}
 
     	break;
     	case SIMPLE_COMMAND:      // a simple command
     	if(c.word != NULL)
     	{
-    		free_word_stream(c.word);
+    		free_word_stream(c.u.word);
     	}
 
     	break;
     	case SUBSHELL_COMMAND:    // ( A )
     	if( != NULL)
     	{
-    		free_command(*(c.subshell_command));
+    		free_command(*(c.u.subshell_command));
     	}
     	break;
     	default:

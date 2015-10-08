@@ -776,11 +776,11 @@ void free_command(struct command c)
 {
 	if(c.input != NULL)
 	{
-		free_word_stream(c.input);
+		free_word_stream(&(c.input));
 	}
 	if(c.output != NULL)
 	{
-		free_word_stream(c.output);
+		free_word_stream(&(c.output));
 	}
 
 	switch(c.type)

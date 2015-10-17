@@ -8,7 +8,7 @@ mkdir "$tmp" || exit
 (
 cd "$tmp" || exit
 
-cat >test.sh <<'EOF'
+cat >testtemp.sh <<'EOF'
 ls | sort
 
 ls || sort
@@ -18,7 +18,7 @@ EOF
 
 
 
-../timetrash -p test.sh  || exit
+../timetrash -p testtemp.sh  || exit
 
 ) || exit
 

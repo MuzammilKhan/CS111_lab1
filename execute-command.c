@@ -11,7 +11,7 @@
 #include <unistd.h> //for pid_t fork()
 #include <sys/wait.h> //waitpid and WEXITSTATUS
 #include <sys/types.h>
-
+#include <stdio.h> // debugging
 
 int
 command_status (command_t c)
@@ -30,14 +30,18 @@ execute_command (command_t c, int time_travel)
 
   switch(c->type) {
   case SIMPLE_COMMAND: {   //need the brackets because labels cannot be immediately before non-statements
+    fprintf(stderr, "simple command\n");
     pid_t pid;
     int status;
     if ( !(pid=fork()) ) {
+      fprintf(stderr, "executing %s\n", c->u.word[0]);
       execvp(c->u.word[0], c->u.word);
     } 
     else {
       waitpid(pid, &status, 0);
+      fprintf(stderr, "finished waiting\n");
       c->status = WEXITSTATUS(status);
+      //exit(c->status);
     }
     break;
   }
@@ -82,13 +86,17 @@ execute_command (command_t c, int time_travel)
     break;
   }
   case PIPE_COMMAND: {
+    fprintf(stderr, "PIPE COMMAND\n");
     int pipefd[2], left = 0, right = 0;
     pipe(pipefd);
+    fprintf(stderr, "finished pipe syscall\n");
     if(!(left = fork()))
     {
       dup2(pipefd[1],1);
       close(pipefd[0]);
+      fprintf(stderr, "entering left command\n");
       execute_command(c->u.command[0], time_travel);  //TODO: flag part?
+      fprintf(stderr, "executed left command\n");
       exit(c->u.command[0]->status);
     }
     else
@@ -97,22 +105,31 @@ execute_command (command_t c, int time_travel)
       {
         dup2(pipefd[0],0);
         close(pipefd[1]);
+	fprintf(stderr, "entering right command\n");
         execute_command(c->u.command[1], time_travel);
+	fprintf(stderr, "executed right command\n");
         exit(c->u.command[1]->status);
       }
       else
       {
         int status = 0;
 	int retpid = waitpid(-1, &status, 0); //wait for -1, meaning any child process
-        if(retpid == right)
+        fprintf(stderr, "waited for one\n");
+	if(retpid == right)
         {
+	  fprintf(stderr,"waiting for left\n");
           c->status = WEXITSTATUS(status);
           waitpid(left, &status, 0);
+	  fprintf(stderr, "waited for left\n");
+	  //	  exit(c->status);
         }
         else
         {
+	  fprintf(stderr,"waiting for right\n");
           waitpid(right, &status, 0);
           c->status = WEXITSTATUS(status);
+	  fprintf(stderr,"waited for right\n");
+	  //exit(c->status);
         }
       }
 
@@ -120,7 +137,7 @@ execute_command (command_t c, int time_travel)
     break;
   }
   case AND_COMMAND: {
-
+    fprintf(stderr,"ANDCOMMAND\n");
     int left = 0, right = 0, status;
     if(!(left = fork()))
     {
@@ -130,7 +147,8 @@ execute_command (command_t c, int time_travel)
     else
     {
       waitpid(left, &status, 0);
-      if(!(c->u.command[0]->status)) //if exit status is 0
+      fprintf(stderr,"status is: %i\n", status);
+      if(!status) //if exit status is 0
       {
        if(!(right = fork()))
         {
@@ -142,6 +160,7 @@ execute_command (command_t c, int time_travel)
     break;
   }
   case OR_COMMAND: {
+    fprintf(stderr, "ORCOMMAND\n");
     int left = 0, right = 0, status;
     if(!(left = fork()))
     {
@@ -151,7 +170,8 @@ execute_command (command_t c, int time_travel)
     else
     {
       waitpid(left, &status, 0);
-      if(c->u.command[0]->status) //if exit status is not 0
+      fprintf(stderr, "status is: %i\n", status);
+      if(status) //if exit status is not 0
       {
        if(!(right = fork()))
         {

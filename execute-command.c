@@ -8,6 +8,10 @@
 
 /* FIXME: You may need to add #include directives, macro definitions,
    static function definitions, etc.  */
+#include <unistd.h> //for pid_t fork()
+#include <sys/wait.h> //waitpid and WEXITSTATUS
+#include <sys/types.h>
+
 
 int
 command_status (command_t c)
@@ -22,12 +26,37 @@ execute_command (command_t c, int time_travel)
      add auxiliary functions and otherwise modify the source code.
      You can also use external functions defined in the GNU C Library.  */
 
-     //random stuff so that make will work. otherwise gcc complains about unused parameters
-     if(c != NULL && time_travel == time_travel)
-     {
-     	 error (1, 0, "command execution not yet implemented");
-     }
+
+  switch(c->type) {
+  case SIMPLE_COMMAND:
+    pid_t pid;
+    int status;
+    if ( !(pid=fork()) ) {
+      execvp(c->word[0], c->word);
+    } 
+    else {
+      waitpid(pid, &status, 0);
+      c->status = WEXITSTATUS(status);
+    }
+    break;
+
+  case SUBSHELL_COMMAND:
+    break;
+
+  case SEQUENCE_COMMAND:
+    break;
+
+  case PIPE_COMMAND:
+    break;
+
+  case AND_COMMAND:
+    break;
+  
+  case OR_COMMAND:
+    break;
+  default:
+    break;
+  }
 
 
-  error (1, 0, "command execution not yet implemented");
 }

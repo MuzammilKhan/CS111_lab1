@@ -121,7 +121,7 @@ execute_command (command_t c, int time_travel)
           c->status = WEXITSTATUS(status);
           waitpid(left, &status, 0);
 	        fprintf(stderr, "waited for left\n");
-	  //	  exit(c->status);
+	     	  exit(c->u.command[0]->status);
         }
         else
         {
@@ -129,7 +129,7 @@ execute_command (command_t c, int time_travel)
           waitpid(right, &status, 0);
           c->status = WEXITSTATUS(status);
 	        fprintf(stderr,"waited for right\n");
-	  //exit(c->status);
+	       exit(c->u.command[1]->status);
         }
       }
 

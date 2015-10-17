@@ -29,32 +29,32 @@ execute_command (command_t c, int time_travel)
      //TODO: if time_travel is nonzero have to do something
 
   switch(c->type) {
-  case SIMPLE_COMMAND:
+  case SIMPLE_COMMAND: {   //need the brackets because labels cannot be immediately before non-statements
     pid_t pid;
     int status;
     if ( !(pid=fork()) ) {
-      execvp(c->word[0], c->word);
+      execvp(c->u.word[0], c->u.word);
     } 
     else {
       waitpid(pid, &status, 0);
       c->status = WEXITSTATUS(status);
     }
     break;
-
-  case SUBSHELL_COMMAND:
+  }
+  case SUBSHELL_COMMAND: {
     break;
-
-  case SEQUENCE_COMMAND:
+  }
+  case SEQUENCE_COMMAND: {
     break;
-
-  case PIPE_COMMAND:
+  }
+  case PIPE_COMMAND: {
     int pipefd[2], left = 0, right = 0;
     pipe(pipefd);
     if(!(left = fork()))
     {
-      dup2(pipdefd[1],1);
+      dup2(pipefd[1],1);
       close(pipefd[0]);
-      execute_command(c->u.command[0]);  //TODO: flag part?
+      execute_command(c->u.command[0], time_travel);  //TODO: flag part?
       exit(c->u.command[0]->status);
     }
     else
@@ -63,12 +63,13 @@ execute_command (command_t c, int time_travel)
       {
         dup2(pipefd[0],0);
         close(pipefd[1]);
-        execute_command(c->u.command[1]);
+        execute_command(c->u.command[1], time_travel);
         exit(c->u.command[1]->status);
       }
       else
       {
-        int status = 0, retpid = waitpid( right , &status, 0); //TODO: what is the first parameter value of waitpid? i just guessed right so it would compile
+        int status = 0;
+	int retpid = waitpid(-1, &status, 0); //wait for -1, meaning any child process
         if(retpid == right)
         {
           c->status = WEXITSTATUS(status);
@@ -77,19 +78,19 @@ execute_command (command_t c, int time_travel)
         else
         {
           waitpid(right, &status, 0);
-          c->status = WEXITSTATUS(status;)
+          c->status = WEXITSTATUS(status);
         }
       }
 
     }
     break;
+  }
+  case AND_COMMAND: {
 
-  case AND_COMMAND:
-
-    int left = 0, right = 0;
+    int left = 0, right = 0, status;
     if(!(left = fork()))
     {
-      execute_command(c->u.command[0]);  //TODO: flag part?
+      execute_command(c->u.command[0], time_travel);  //TODO: flag part?
       exit(c->u.command[0]->status);
     }
     else
@@ -99,18 +100,18 @@ execute_command (command_t c, int time_travel)
       {
        if(!(right = fork()))
         {
-          execute_command(c->u.command[1]);
+          execute_command(c->u.command[1], time_travel);
           exit(c->u.command[1]->status);
         }
       }
     }
     break;
-  
-  case OR_COMMAND:
-    int left = 0, right = 0;
+  }
+  case OR_COMMAND: {
+    int left = 0, right = 0, status;
     if(!(left = fork()))
     {
-      execute_command(c->u.command[0]);  //TODO: flag part?
+      execute_command(c->u.command[0], time_travel);  //TODO: flag part?
       exit(c->u.command[0]->status);
     }
     else
@@ -120,15 +121,17 @@ execute_command (command_t c, int time_travel)
       {
        if(!(right = fork()))
         {
-          execute_command(c->u.command[1]);
+          execute_command(c->u.command[1], time_travel);
           exit(c->u.command[1]->status);
         }
       }
     }
     break;
+  }
   default:
     break;
   }
 
+  return;
 
 }

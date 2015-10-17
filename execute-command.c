@@ -42,9 +42,43 @@ execute_command (command_t c, int time_travel)
     break;
   }
   case SUBSHELL_COMMAND: {
+    pid_t pid;
+    int status;
+    if ( !(pid=fork())) {
+      execute_command(c->u.subshell_command, time_travel);
+      exit(c->u.subshell_command->status);
+    }
+    else {
+      waitpid(pid, &status, 0);
+      c->status = WEXITSTATUS(status);
+    }
+
     break;
   }
   case SEQUENCE_COMMAND: {
+    int left = 0, right = 0, status;
+    if (!(left = fork())) {
+      execute_command(c->u.command[0], time_travel);
+      exit(c->u.command[0]->status);
+    }
+    else {
+      if (!(right = fork())) {
+	execute_command(c->u.command[1], time_travel);
+	exit(c->u.command[1]->status);
+      }
+      else {
+	int retpid = waitpid(-1, &status, 0);
+	if (retpid == right) {
+	  c->status = WEXITSTATUS(status);
+	  waitpid(left, &status, 0);
+	}
+	else {
+	  waitpid(right, &status, 0);
+	  c->status = WEXITSTATUS(status);
+	}
+
+      }
+    }
     break;
   }
   case PIPE_COMMAND: {

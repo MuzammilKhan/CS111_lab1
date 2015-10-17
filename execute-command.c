@@ -125,10 +125,9 @@ execute_command (command_t c, int time_travel)
         }
         else
         {
-          waitpid(right, &status, 0); //changed order to test something
 	        fprintf(stderr,"waiting for right\n");
-          
           c->status = WEXITSTATUS(status);
+          waitpid(right, &status, 0);
 	        fprintf(stderr,"waited for right\n");
 	       exit(c->u.command[1]->status);
         }

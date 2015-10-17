@@ -92,7 +92,7 @@ execute_command (command_t c, int time_travel)
     fprintf(stderr, "finished pipe syscall\n");
     if(!(left = fork()))
     {
-      dup2(pipefd[1],1);
+      dup2(1,pipefd[1]);
       close(pipefd[0]);
       fprintf(stderr, "entering left command\n");
       execute_command(c->u.command[0], time_travel);  //TODO: flag part?
@@ -103,7 +103,7 @@ execute_command (command_t c, int time_travel)
     {
       if(!(right = fork()))
       {
-        dup2(pipefd[0],0);
+        dup2(0,pipefd[0]);
         close(pipefd[1]);
 	      fprintf(stderr, "entering right command\n");
         execute_command(c->u.command[1], time_travel);
@@ -126,7 +126,7 @@ execute_command (command_t c, int time_travel)
         else
         {
 	        fprintf(stderr,"waiting for right\n");
-          c->status = WEXITSTATUS(status);
+          c->status = WEXITSTATUS(status); //changed order for testing
           waitpid(right, &status, 0);
 	        fprintf(stderr,"waited for right\n");
 	       exit(c->u.command[1]->status);

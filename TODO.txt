@@ -1,14 +1,113 @@
-Points to address:
--is the way comments are being removed correct
--need to write function to properly delete the command tree
--Check for * and $ chars first and report invalid synatax before replacing them in buffer
+int execlp ( const char * file, const char arg0, const char arg1…)
+    replace the current process image with a new process image indicated by file
+    arg[0] = file
+    	   NULL pointer signals the end of the arguments
+
+ls -a -t
+execlp(“ls”, “ls”, “-a”, “-t”, NULL);
 
 
--'\t' is also whitespace and can seperate words. code has to be modified to accomodate  this.
-- other whitespace associated errors ex: line starting with whitespace will mess with substring detection as it stands currently.
--I/O pointers
-- address this "Note that this does not apply for the case of newline on the left side the PIPE, AND, OR. In these cases, it is considered as invalid."
--free stream->a after everything is done
+execlp replaces the current process, so we need to fork before we call excel.
+       child runs the command
+       parent waits for child
+       	      pid_t waitpid(pid_t pid, int* status, int options);
+	      	    pid can be -1, which means any child process
+		    status is WEXITSTATUS(status)
+		    	   used for AND/OR command
+	 	    options are complicated, so use 0
+		    returns value is the pid of the process you waited for
+		    if pid arg wasn’t -1, then return value would just be the same as the arg
+											      	     
 
--remove number from the error msgs
-- call the 2 free funcs
+if ( !(childhood = fork() ) {
+   execlp(SIMPLE Command);
+}
+else {
+     waitpid(childpid, &status, 0);
+}
+
+
+
+int dup2 (int oldfd, int newfd)
+    makes newfd equal the same file indicated by oldfd.
+
+IO Redirection
+i.e. command < a.txt
+
+if (! (childhood = fork()) {
+   int fd = open (“a.txt”, O_RDWR);
+   dup2(fd, STD_IN);
+   execlp(“command”);
+}
+
+for file descriptors:
+    stdin = 0;
+    stdout = 1;
+    stderr = 2;
+
+
+int pipe (int pipefd[2]) 
+    creates a pipe
+    pipefd[0] = FD of the read end of the pipe
+    pipefd[1] = FD of the write end of the pipe
+
+
+PIPE COMMANDS
+ls | grep “123”
+
+int pipefd[2], childpid = 0;
+pipe(pipefd)
+if (! (childpid=fork()) {
+   dup2(pipefd[1], 1);
+   close (pipefd[0]);
+   execlp(“ls”,”ls”,NULL);
+} else {
+  dup2(pipefd[0],0);
+  close(pipefd[1]);
+  execlp(“grep”,”grep”, “123”, NULL);
+}
+
+void execpipe(command_t c) {
+     int pipefd[2], childpid = 0;
+     pipe(pipefd);
+     if (! (left = fork()) {
+     	dup2 = (pipefd[1],1);
+	close (pipefd[0]);
+	exec_command(c->u.command[0]);
+	exit (c->u.command[0]->status);
+     }
+     else {
+     	  if ( !(right = fork()) ) {
+	     dup2 = (pipefd[0],0);
+	     close (pipefd[1]);
+	     exec_command(c->u.command[1]);
+	     exit(c->u.command[1]->status_;
+	  }
+	  else {
+	     int status = 0;
+	     retpid = waitpid(-1, &status, 0);
+	     if (retpid == right) {
+	     	c->status = WEXITSTATUS(status);
+		waitpid(left, &status, 0);
+	     }
+	     else {
+	     	waitpid(right, &status, 0);
+		c->status = WEXITSTATUS(status);
+	     }
+	  }
+      }
+}
+
+AND_COMMAND
+A && B
+  execute A
+  if exit status of A is 0, then execute B (return status of 0 means true)
+  if exit status is not zero, then skip B
+
+OR_COMMAND
+A || B
+  execute A
+  if exit status is not zero, then execute B
+  if zero, then skip B
+
+

@@ -105,30 +105,30 @@ execute_command (command_t c, int time_travel)
       {
         dup2(pipefd[0],0);
         close(pipefd[1]);
-	fprintf(stderr, "entering right command\n");
+	      fprintf(stderr, "entering right command\n");
         execute_command(c->u.command[1], time_travel);
-	fprintf(stderr, "executed right command\n");
+	      fprintf(stderr, "executed right command\n");
         exit(c->u.command[1]->status);
       }
       else
       {
         int status = 0;
-	int retpid = waitpid(-1, &status, 0); //wait for -1, meaning any child process
+	      int retpid = waitpid(-1, &status, 0); //wait for -1, meaning any child process
         fprintf(stderr, "waited for one\n");
-	if(retpid == right)
+	      if(retpid == right)
         {
-	  fprintf(stderr,"waiting for left\n");
+	        fprintf(stderr,"waiting for left\n");
           c->status = WEXITSTATUS(status);
           waitpid(left, &status, 0);
-	  fprintf(stderr, "waited for left\n");
+	        fprintf(stderr, "waited for left\n");
 	  //	  exit(c->status);
         }
         else
         {
-	  fprintf(stderr,"waiting for right\n");
+	        fprintf(stderr,"waiting for right\n");
           waitpid(right, &status, 0);
           c->status = WEXITSTATUS(status);
-	  fprintf(stderr,"waited for right\n");
+	        fprintf(stderr,"waited for right\n");
 	  //exit(c->status);
         }
       }

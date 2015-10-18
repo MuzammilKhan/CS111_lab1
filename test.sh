@@ -26,6 +26,8 @@ ls || sort
 cat < words.txt
 
 echo steak chicken fish goat > food.txt
+
+sort food.txt
 EOF
 
 

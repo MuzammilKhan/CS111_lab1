@@ -39,11 +39,13 @@ execute_command (command_t c, int time_travel)
       int fd;
       if(c->input != NULL)  //TODO: Currently testing this
       {
+        fprintf(stderr, "setting input to %s\n", c->input);
         fd = open(c->input, O_RDWR);
         dup2(fd, STDIN_FILENO);
       }
       if(c->output != NULL)
       {
+        fprintf(stderr, "setting output to %s\n", c->output);
         fd = open(c->output, O_RDWR);
         dup2(fd, STDOUT_FILENO);
       }

@@ -8,12 +8,22 @@ mkdir "$tmp" || exit
 (
 cd "$tmp" || exit
 
+cat >words.txt <<'EOF'
+monkey
+cat
+dog
+bird
+chicken
+bull
+ant
+EOF
+
 cat >testtemp.sh <<'EOF'
 ls | sort
 
 ls || sort
 
-ls && sort
+cat < words.txt
 EOF
 
 

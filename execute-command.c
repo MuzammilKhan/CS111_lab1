@@ -36,6 +36,12 @@ execute_command (command_t c, int time_travel)
     int status;
     if ( !(pid=fork()) ) {
       fprintf(stderr, "executing %s\n", c->u.word[0]);
+      int fd;
+      if(c->input != NULL)  //TODO: Currently testing this
+      {
+        fd = open(*input, O_RDWR);
+        dup2(fd, STDIN_FILENO)
+      }
       execvp(c->u.word[0], c->u.word);
       fprintf(stderr, "execvp failure\n");
     } 

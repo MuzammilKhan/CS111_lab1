@@ -39,7 +39,7 @@ execute_command (command_t c, int time_travel)
       int fd;
       if(c->input != NULL)  //TODO: Currently testing this
       {
-        fd = open(*(c->input), O_RDWR);
+        fd = open(c->input, O_RDWR);
         dup2(fd, STDIN_FILENO);
       }
       execvp(c->u.word[0], c->u.word);

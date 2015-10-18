@@ -39,8 +39,8 @@ execute_command (command_t c, int time_travel)
       int fd;
       if(c->input != NULL)  //TODO: Currently testing this
       {
-        fd = open(*input, O_RDWR);
-        dup2(fd, STDIN_FILENO)
+        fd = open(*(c->input), O_RDWR);
+        dup2(fd, STDIN_FILENO);
       }
       execvp(c->u.word[0], c->u.word);
       fprintf(stderr, "execvp failure\n");

@@ -41,7 +41,7 @@ execute_command (command_t c, int time_travel)
       {
         fprintf(stderr, "setting input to %s\n", c->input);
         fd = open(c->input, O_RDONLY);
-        if(dup2(fd, stdin) < 0)
+        if(dup2(fd, 0) < 0)
         {
           fprintf(stderr, "error in dup2 - input\n");
         } 
@@ -50,7 +50,7 @@ execute_command (command_t c, int time_travel)
       {
         fprintf(stderr, "setting output to %s\n", c->output);
         fd = open(c->output, O_WRONLY);
-        if(dup2(fd, stdout) < 0)
+        if(dup2(fd, 1) < 0)
           {
             fprintf(stderr, "error in dup2 - output\n");
           }

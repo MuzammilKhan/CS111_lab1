@@ -42,6 +42,11 @@ execute_command (command_t c, int time_travel)
         fd = open(c->input, O_RDWR);
         dup2(fd, STDIN_FILENO);
       }
+      if(c->output != NULL)
+      {
+        fd = open(c->output, O_RDWR);
+        dup2(fd, STDOUT_FILENO);
+      }
       execvp(c->u.word[0], c->u.word);
       fprintf(stderr, "execvp failure\n");
     } 

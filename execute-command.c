@@ -40,14 +40,20 @@ execute_command (command_t c, int time_travel)
       if(c->input != NULL)  //TODO: Currently testing this
       {
         fprintf(stderr, "setting input to %s\n", c->input);
-        fd = open(c->input, O_RDWR);
-        dup2(fd, STDIN_FILENO);
+        fd = open(c->input, O_RDONLY);
+        if(dup2(fd, stdin) < 0)
+        {
+          fprintf(stderr, "error in dup2 - input\n");
+        } 
       }
       if(c->output != NULL)
       {
         fprintf(stderr, "setting output to %s\n", c->output);
-        fd = open(c->output, O_RDWR);
-        dup2(fd, STDOUT_FILENO);
+        fd = open(c->output, O_WRONLY);
+        if(dup2(fd, stdout) < 0)
+          {
+            fprintf(stderr, "error in dup2 - output\n");
+          }
       }
       execvp(c->u.word[0], c->u.word);
       fprintf(stderr, "execvp failure\n");

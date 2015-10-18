@@ -49,7 +49,7 @@ execute_command (command_t c, int time_travel)
       if(c->output != NULL)
       {
         fprintf(stderr, "setting output to %s\n", c->output);
-        fd = fopen(c->output, "w");
+        fd = open(c->output, O_CREAT | O_WRONLY, S_IROTH | S_IWOTH);
         if(dup2(fd, 1) < 0)
           {
             fprintf(stderr, "error in dup2 - output\n");

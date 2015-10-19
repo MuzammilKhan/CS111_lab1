@@ -153,7 +153,7 @@ char* returnInputOutput( char* input, char delimiter) {
   char* inputOutput = (char*) checked_malloc(total_length);
   bool keep_removing_spaces = true;
   for (new_index = char_index + 1; new_index < total_length; new_index++) {
-    if (isValidWordChar(input[new_index]))
+    if (isValidWordChar(input[new_index]) || input[new_index] == '(' )
       keep_removing_spaces = false;
     if (!keep_removing_spaces && input[new_index] != '~') { //strip initial spaces;
       inputOutput[counter] = input[new_index];
@@ -182,7 +182,7 @@ char* returnInputOutput( char* input, char delimiter) {
   int temp_index = 0;
   int temp_counter = 0;
   while (input[temp_index] != '\0') {
-    if (isValidWordChar(input[temp_index])) {
+    if (isValidWordChar(input[temp_index]) || input[temp_index] == '(') {
       keep_removing_spaces = false;
     }
     if (input[temp_index] != '~' && !keep_removing_spaces) {
@@ -232,7 +232,6 @@ bool isValidWordChar (char c)
 bool is_operator(char c) // check if the character is an operator
 {
   switch (c) {
-    case ';':
     case '|':
     case '$': // $ == ||
     case '*': // * == &&
@@ -249,7 +248,7 @@ void strip_first_and_last(char* input) //strips the first and last char from str
 	  {input = ""; return;}
 
 	int i = 0;
-	for( ; i < limit-1; i++) //remove first char	
+	for( ; i < limit-2; i++) //remove first char	
 	{
       	  input[i] = input[i+1];  //copies up to and including ')'
 	}
@@ -317,7 +316,7 @@ char**  make_word_stream(char* input) //make array of words  //TODO: check and t
 
 
 
-bool is_subshell(char* input) //checks if the input string is bounded by brackets
+bool is_subshell(const char* input) //checks if the input string is bounded by brackets
 {
 	if (strlen(input) == 0)
 		return false;
@@ -332,6 +331,9 @@ bool is_subshell(char* input) //checks if the input string is bounded by bracket
 	while(input[index] != '\0' && input[index] != EOF)
 	{
 		current = input[index];
+		if (current == '(')
+		  open_bracket_found = true;
+
 		if(!open_bracket_found && current != ' ' && current != '\t' && current != '\n') 
 		{
 			return false;
@@ -362,7 +364,6 @@ command_t
 parse(char* input)
 {
 	struct command* cmd = checked_malloc(sizeof(struct command));
-
 	
 	if(is_subshell(input)) //subshell case
 	{ 
@@ -371,7 +372,6 @@ parse(char* input)
 	  	// AFTER INPUT IN LAB SPECS, SO MUST BE CHECKED FIRST
 	  	cmd->output =  returnInputOutput(input, '>');
 	  	cmd->input = returnInputOutput(input, '<');
-	  	
                 char** str_array = make_word_stream(input);
 
 		cmd->type = SUBSHELL_COMMAND;
@@ -634,6 +634,8 @@ make_command_stream(int(*get_next_byte) (void *),
 
                 //if notice a break, reset word_present                                                                                                                                                
                 if( next == ';' || next == '~' || next == '\n') {
+		  if (next == ';')
+		    next = '~';
                   word_present = false;
 		  simple_command_present = false;
 		}
@@ -695,7 +697,7 @@ make_command_stream(int(*get_next_byte) (void *),
 		//END SYNTAX CHECKING  //ONE MORE SYNTAX CHECK AFTER LOOP
 
 
-		
+	END_SYNTAX_CHECK:		
 		//buffer loading and resizing
 		if(next > -1)
 		{

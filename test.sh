@@ -27,12 +27,14 @@ cat < words.txt
 
 echo steak chicken fish goat > food.txt
 
-sort food.txt
+(sort food.txt)
+
+echo hello
 EOF
 
 
 
-../timetrash testtemp.sh  || exit
+../timetrash -p testtemp.sh  || exit
 
 ) || exit
 

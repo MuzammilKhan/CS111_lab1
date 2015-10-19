@@ -634,8 +634,6 @@ make_command_stream(int(*get_next_byte) (void *),
 
                 //if notice a break, reset word_present                                                                                                                                                
                 if( next == ';' || next == '~' || next == '\n') {
-		  if (next == ';')
-		    next = '~';
                   word_present = false;
 		  simple_command_present = false;
 		}
@@ -697,7 +695,6 @@ make_command_stream(int(*get_next_byte) (void *),
 		//END SYNTAX CHECKING  //ONE MORE SYNTAX CHECK AFTER LOOP
 
 
-	END_SYNTAX_CHECK:		
 		//buffer loading and resizing
 		if(next > -1)
 		{

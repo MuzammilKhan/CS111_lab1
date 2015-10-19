@@ -34,7 +34,7 @@ EOF
 
 
 
-../timetrash -p testtemp.sh  || exit
+../timetrash testtemp.sh  || exit
 
 ) || exit
 

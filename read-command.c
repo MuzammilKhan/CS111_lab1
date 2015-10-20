@@ -250,17 +250,14 @@ void strip_first_and_last(char* input) //strips the first and last paren from st
 	  {input = ""; return;}
 
 	int i = 0;
-	for( ; i < limit-2; i++) //remove first char	
+	for( ; i < limit-1; i++) //remove first char	
 	{
-      	input[i] = input[i+1];  //copies up to and including ')'
-		if(input[i] == ')')
-		{
-			last_bracket_pos = i;
-		}
+	  input[i] = input[i+1];  //copies up to and including ')'
+	  if(input[i] == ')') {
+	    last_bracket_pos = i;
+	  }
 	}
-
 	input[last_bracket_pos] = '\0'; //replaces ')' with null byte
-
 	return;
 }
 
@@ -353,9 +350,10 @@ bool is_subshell(const char* input) //checks if the input string is bounded by b
 
 		if(open_bracket_count == closed_bracket_count)
 		{
-			if(current != ')' && current != '(' && current != ' ' && current != '\t' && current != '\n')
+			if(current != ')' && current != '(' && current != ' ' && current != '\t' && current != '\n' && current != '~')
 			{
 				char_after_closed_bracket = true;
+				return false;
 			}
 		}
 
@@ -370,20 +368,22 @@ command_t
 parse(char* input)
 {
 	struct command* cmd = checked_malloc(sizeof(struct command));
-	
+	fprintf(stderr, "input is %s\n", input);
 	if(is_subshell(input)) //subshell case
 	{ 
 	  	//set input and output
 	  	// MUST SET OUTPUT FIRST, OR ELSE WILL NOT WORK. OUTPUT IS ALWAYS WRITTEN
 	  	// AFTER INPUT IN LAB SPECS, SO MUST BE CHECKED FIRST
 	  	cmd->output =  returnInputOutput(input, '>');
-	  	cmd->input = returnInputOutput(input, '<');
+	    	cmd->input = returnInputOutput(input, '<');
                 char** str_array = make_word_stream(input);
 
 		cmd->type = SUBSHELL_COMMAND;
 		cmd->status = -1;
-		strip_first_and_last(input); //removes brackets
+       		strip_first_and_last(input); //removes brackets
+		fprintf(stderr, "input is %s\n", input);
 		cmd->u.subshell_command = parse(input);
+		fprintf(stderr, "input is %s\n", cmd->u.subshell_command->u.word[0]);
 		return cmd;
 	}
 	else if(!contains_operator(input)) //simple command
@@ -639,7 +639,7 @@ make_command_stream(int(*get_next_byte) (void *),
 			{output_redirect_hit = true;}
 
                 //if notice a break, reset word_present                                                                                                                                                
-                if( next == ';' || next == '~' || next == '\n') {
+                if( next == '~' || next == '\n') {
                   word_present = false;
 		  simple_command_present = false;
 		}
@@ -668,7 +668,7 @@ make_command_stream(int(*get_next_byte) (void *),
 		bool transformed_operator = (prev == '|' && next == '$') || (prev == '&' && next == '*');
 
                 //if notice a non-word, but operator symbols have not had suffix words, then return error                                                                                              
-                if( operator_hit && ( !transformed_operator  && next != ' ' && next != '\n' && next != '\t' && !isValidWordChar(next))) {
+                if( operator_hit && ( !transformed_operator  && next != ' ' && next != '\n' && next != '\t' && next != '(' && !isValidWordChar(next))) {
                   error(1,0, "%zu, Invalid syntax4 prev %c next %c\n", line_count, prev, next);
                 }
 

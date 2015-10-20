@@ -244,16 +244,21 @@ bool is_operator(char c) // check if the character is an operator
 void strip_first_and_last(char* input) //strips the first and last char from string
 {
 	int limit = strlen(input);
+	int last_bracket_pos = 0;
 	if(limit <= 2)
 	  {input = ""; return;}
 
 	int i = 0;
 	for( ; i < limit-2; i++) //remove first char	
 	{
-      	  input[i] = input[i+1];  //copies up to and including ')'
+      	input[i] = input[i+1];  //copies up to and including ')'
+		if(input[i] == ')')
+		{
+			last_bracket_pos = i;
+		}
 	}
 
-	input[limit-2] = '\0'; //replaces ')' with null byte
+	input[last_bracket_pos] = '\0'; //replaces ')' with null byte
 
 	return;
 }

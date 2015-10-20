@@ -25,7 +25,7 @@ ls || sort
 
 cat < words.txt
 
-echo steak chicken fish goat > food.txt
+printf "steak\nchicken\nfish\ngoat" > food.txt
 
 (sort food.txt)
 

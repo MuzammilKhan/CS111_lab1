@@ -232,6 +232,7 @@ bool isValidWordChar (char c)
 bool is_operator(char c) // check if the character is an operator
 {
   switch (c) {
+    case ';':
     case '|':
     case '$': // $ == ||
     case '*': // * == &&

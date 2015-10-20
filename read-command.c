@@ -368,7 +368,7 @@ command_t
 parse(char* input)
 {
 	struct command* cmd = checked_malloc(sizeof(struct command));
-	fprintf(stderr, "input is %s\n", input);
+	//	fprintf(stderr, "input is %s\n", input);
 	if(is_subshell(input)) //subshell case
 	{ 
 	  	//set input and output
@@ -381,9 +381,7 @@ parse(char* input)
 		cmd->type = SUBSHELL_COMMAND;
 		cmd->status = -1;
        		strip_first_and_last(input); //removes brackets
-		fprintf(stderr, "input is %s\n", input);
-		cmd->u.subshell_command = parse(input);
-		fprintf(stderr, "input is %s\n", cmd->u.subshell_command->u.word[0]);
+      		cmd->u.subshell_command = parse(input);
 		return cmd;
 	}
 	else if(!contains_operator(input)) //simple command

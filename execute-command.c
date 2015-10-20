@@ -86,20 +86,23 @@ execute_command (command_t c, int time_travel)
       exit(c->u.command[0]->status);
     }
     else {
+      waitpid(left, &status, 0);
       if (!(right = fork())) {
-  execute_command(c->u.command[1], time_travel);
-  exit(c->u.command[1]->status);
+	execute_command(c->u.command[1], time_travel);
+	exit(c->u.command[1]->status);
       }
       else {
-  int retpid = waitpid(-1, &status, 0);
-  if (retpid == right) {
-    c->status = WEXITSTATUS(status);
-    waitpid(left, &status, 0);
-  }
-  else {
-    waitpid(right, &status, 0);
-    c->status = WEXITSTATUS(status);
-  }
+	int retpid = waitpid(right, &status, 0);
+	c->status = WEXITSTATUS(status);
+	/*
+	if (retpid == right) {
+	  c->status = WEXITSTATUS(status);
+	  waitpid(left, &status, 0);
+	}
+	else {
+	  waitpid(right, &status, 0);
+	  c->status = WEXITSTATUS(status);
+	  }*/
       }
     }
     break;
@@ -115,38 +118,37 @@ execute_command (command_t c, int time_travel)
     {
       close(pipefd[0]);
       if (dup2(pipefd[1],1) == -1)
-  fprintf(stderr, "cannot dup2\n");
+	fprintf(stderr, "cannot dup2\n");
       fprintf(stderr, "entering left command\n");
       execute_command(c->u.command[0], time_travel);  //TODO: flag part?
-      c->status = c->u.command[0]->status;
       fprintf(stderr, "executed left command\n");
-      exit(0);
+      exit(c->u.command[0]->status);
     }
     else
     {
       int status = 0;
       if(!(right = fork()))
       {
-  close(pipefd[1]);
+	close(pipefd[1]);
         if (dup2(pipefd[0],0) == -1)
-    fprintf(stderr,"cannot dup2\n");
+	  fprintf(stderr,"cannot dup2\n");
         fprintf(stderr, "entering right command\n");
-  execute_command(c->u.command[1], time_travel);
+	execute_command(c->u.command[1], time_travel);
         fprintf(stderr, "executed right command\n");
-  exit(0);
+	exit(c->u.command[1]->status);
       }
       else
       {
-  close(pipefd[0]);
-  close(pipefd[1]);
-  int retpid = waitpid(-1, &status, 0); //wait for -1, meaning any child process
+	close(pipefd[0]);
+	close(pipefd[1]);
+	int retpid = waitpid(-1, &status, 0); //wait for -1, meaning any child process
         fprintf(stderr, "waited for one\n");
-  if(retpid == right)
+	if(retpid == right)
         {
-    fprintf(stderr,"waiting for left\n");
+	  fprintf(stderr,"waiting for left\n");
           c->status = WEXITSTATUS(status);
           waitpid(left, &status, 0);
-    fprintf(stderr, "waited for left\n");
+	  fprintf(stderr, "waited for left\n");
           //exit(c->status);
         }
         else

@@ -25,13 +25,13 @@ ls || sort
 
 cat < words.txt
 
-printf "steak\nchicken\nfish\ngoat\n" > food.txt
+printf \"steak\nchicken\nfish\ngoat\n\" > food.txt
 
 (sort food.txt)
 
 echo hello
 
-echo done; echo now
+echo done; echo now 
 EOF
 
 

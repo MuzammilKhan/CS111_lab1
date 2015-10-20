@@ -29,7 +29,7 @@ cat < words.txt
 
 echo hello
 
-echo done; echo now 
+(echo done);(echo now) 
 EOF
 
 

@@ -350,10 +350,10 @@ bool is_subshell(const char* input) //checks if the input string is bounded by b
 
 		if(open_bracket_count == closed_bracket_count)
 		{
-			if(current != ')' && current != '(' && current != ' ' && current != '\t' && current != '\n' && current != '~')
-			{
-				char_after_closed_bracket = true;
-				return false;
+		  //if(current != ')' && current != '(' && current != ' ' && current != '\t' && current != '\n' && current != '~')
+		  if (is_operator(current))
+		        {
+     				return false;
 			}
 		}
 
@@ -382,6 +382,8 @@ parse(char* input)
 		cmd->status = -1;
        		strip_first_and_last(input); //removes brackets
       		cmd->u.subshell_command = parse(input);
+		cmd->u.subshell_command->output = cmd->output;
+		cmd->u.subshell_command->input = cmd->input;
 		return cmd;
 	}
 	else if(!contains_operator(input)) //simple command
@@ -389,8 +391,8 @@ parse(char* input)
 	    	//set input and output
 	  	// MUST SET OUTPUT FIRST, OR ELSE WILL NOT WORK. OUTPUT IS ALWAYS WRITTEN
 	  	// AFTER INPUT IN LAB SPECS, SO MUST BE CHECKED FIRST
-	  	cmd->output =  returnInputOutput(input, '>');
-	  	cmd->input = returnInputOutput(input, '<');
+	    cmd->output =  returnInputOutput(input, '>');
+	    cmd->input = returnInputOutput(input, '<');
 
 		char** str_array = make_word_stream(input);
 

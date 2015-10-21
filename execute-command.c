@@ -31,15 +31,15 @@ execute_command (command_t c, int time_travel)
 
   switch(c->type) {
   case SIMPLE_COMMAND: {   //need the brackets because labels cannot be immediately before non-statements
-    fprintf(stderr, "simple command\n");
+    //    fprintf(stderr, "simple command\n");
     pid_t pid;
     int status;
     if ( !(pid=fork()) ) {
-      fprintf(stderr, "executing %s\n", c->u.word[0]);
+      //      fprintf(stderr, "executing %s\n", c->u.word[0]);
       int fd;
       if(c->input != NULL)  //TODO: Currently testing this
       {
-        fprintf(stderr, "setting input to %s\n", c->input);
+	//        fprintf(stderr, "setting input to %s\n", c->input);
         fd = open(c->input, O_RDONLY);
         if(dup2(fd, 0) < 0)
         {
@@ -48,7 +48,7 @@ execute_command (command_t c, int time_travel)
       }
       if(c->output != NULL)
       {
-        fprintf(stderr, "setting output to %s\n", c->output);
+        //fprintf(stderr, "setting output to %s\n", c->output);
         fd = open(c->output, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR| S_IROTH | S_IWOTH);
         if(dup2(fd, 1) < 0)
           {
@@ -60,7 +60,7 @@ execute_command (command_t c, int time_travel)
     } 
     else {
       waitpid(pid, &status, 0);
-      fprintf(stderr, "finished waiting\n");
+      //fprintf(stderr, "finished waiting\n");
       c->status = WEXITSTATUS(status);
     }
     break;
@@ -99,20 +99,20 @@ execute_command (command_t c, int time_travel)
     break;
   }
   case PIPE_COMMAND: {
-    fprintf(stderr, "PIPE COMMAND\n");
+    //fprintf(stderr, "PIPE COMMAND\n");
     int pipefd[2], left = 0, right = 0;
     if (pipe(pipefd) == -1) {
       fprintf(stderr, "Pipe failed\n");
     }
-    fprintf(stderr, "finished pipe syscall\n");
+    //fprintf(stderr, "finished pipe syscall\n");
     if(!(left = fork()))
     {
       close(pipefd[0]);
       if (dup2(pipefd[1],1) == -1)
 	      {fprintf(stderr, "cannot dup2\n");}
-      fprintf(stderr, "entering left command\n");
+      //fprintf(stderr, "entering left command\n");
       execute_command(c->u.command[0], time_travel);  //TODO: flag part?
-      fprintf(stderr, "executed left command\n");
+      //fprintf(stderr, "executed left command\n");
       exit(c->u.command[0]->status);
     }
     else
@@ -123,9 +123,9 @@ execute_command (command_t c, int time_travel)
         close(pipefd[1]);
         if (dup2(pipefd[0],0) == -1)
           {fprintf(stderr,"cannot dup2\n");}
-        fprintf(stderr, "entering right command\n");
+        //fprintf(stderr, "entering right command\n");
         execute_command(c->u.command[1], time_travel);
-        fprintf(stderr, "executed right command\n");
+        //fprintf(stderr, "executed right command\n");
 	      exit(c->u.command[1]->status);
       }
       else
@@ -133,21 +133,21 @@ execute_command (command_t c, int time_travel)
 	       close(pipefd[0]);
 	       close(pipefd[1]);
 	       int retpid = waitpid(-1, &status, 0); //wait for -1, meaning any child process
-         fprintf(stderr, "waited for one\n");
+	       //fprintf(stderr, "waited for one\n");
 	       if(retpid == right)
          {
-	         fprintf(stderr,"waiting for left\n");
+	   //      fprintf(stderr,"waiting for left\n");
            c->status = WEXITSTATUS(status);
            waitpid(left, &status, 0);
-	         fprintf(stderr, "waited for left\n");
+	   //      fprintf(stderr, "waited for left\n");
           //exit(c->status);
         }
         else
         {
-          fprintf(stderr,"waiting for right\n");
+          //fprintf(stderr,"waiting for right\n");
           waitpid(right, &status, 0);
           c->status = WEXITSTATUS(status);
-          fprintf(stderr,"waited for right\n");
+	  // fprintf(stderr,"waited for right\n");
     //exit(c->status);
         }
       }
@@ -156,7 +156,7 @@ execute_command (command_t c, int time_travel)
     break;
   }
   case AND_COMMAND: {
-    fprintf(stderr,"ANDCOMMAND\n");
+    //fprintf(stderr,"ANDCOMMAND\n");
     int left = 0, right = 0, status;
     if(!(left = fork()))
     {
@@ -166,7 +166,7 @@ execute_command (command_t c, int time_travel)
     else
     {
       waitpid(left, &status, 0);
-      fprintf(stderr,"status is: %i\n", status);
+      //fprintf(stderr,"status is: %i\n", status);
       if(!status) //if exit status is 0
       {
        if(!(right = fork()))
@@ -179,7 +179,7 @@ execute_command (command_t c, int time_travel)
     break;
   }
   case OR_COMMAND: {
-    fprintf(stderr, "ORCOMMAND\n");
+    //fprintf(stderr, "ORCOMMAND\n");
     int left = 0, right = 0, status;
     if(!(left = fork()))
     {
@@ -189,7 +189,7 @@ execute_command (command_t c, int time_travel)
     else
     {
       waitpid(left, &status, 0);
-      fprintf(stderr, "status is: %i\n", status);
+      //fprintf(stderr, "status is: %i\n", status);
       if(status) //if exit status is not 0
       {
        if(!(right = fork()))

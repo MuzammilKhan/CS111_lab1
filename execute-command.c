@@ -86,8 +86,8 @@ execute_command (command_t c, int time_travel)
       exit(c->u.command[0]->status);
     }
     else {
+      waitpid(left, &status, 0);
       if (!(right = fork())) {
-         waitpid(left, &status, 0);
 	       execute_command(c->u.command[1], time_travel);
 	       exit(c->u.command[1]->status);
       }

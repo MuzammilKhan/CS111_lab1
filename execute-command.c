@@ -174,6 +174,10 @@ execute_command (command_t c, int time_travel)
           execute_command(c->u.command[1], time_travel);
           exit(c->u.command[1]->status);
         }
+       else {
+	 waitpid(right, &status, 0);
+	 c->status = WEXITSTATUS(status);
+       }
       }
     }
     break;
@@ -197,6 +201,10 @@ execute_command (command_t c, int time_travel)
           execute_command(c->u.command[1], time_travel);
           exit(c->u.command[1]->status);
         }
+       else {
+	 waitpid(right, &status, 0);
+	 c->status = WEXITSTATUS(status);
+       }
       }
     }
     break;

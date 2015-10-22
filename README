@@ -43,12 +43,20 @@ helped fix many of our spacing issues.
 
 --------
 
-TEAM MEMBER INFO AGAIN:
+PART B
 
-Team members:
-Andy (Bo-Yun) Shih
-ID: 404 418 629
+This part of the lab was fairly straightforward. We had to execute the command tree that was produced from part A, and we implemented the
+this in execute-command.c. The entire structure boils down to a recursive function with a big switch statement that takes in a command and,
+based on what type the command is, processes it accordingly. The behavior of the recursive function separated into two main cases: simple
+commands, compound commands. In both of these categories the input/output was a big concern.
 
-Muzammil Khan
-ID: 204 282 448
+For simple commands, it was simple. We executed the command via a fork and an execvp system call in the child process. The parent process
+continued on to return and fetch the next commands. For the compound commands, we simply had to make two forks, and make the right process
+wait for the left process. The parent process waits for both child processes to finish, and takes on the exit status of the right child.
 
+Input output was a hassle especially for pipe commands. We had to call system calls such as dup2 and pipefd to set up the I/O.
+
+Generally, this part of the lab was quite a bit simpler than the first part of the lab. The code structure was clear, and not many corner
+cases.
+
+--------

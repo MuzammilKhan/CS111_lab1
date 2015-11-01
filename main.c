@@ -67,7 +67,23 @@ main (int argc, char **argv)
       graph[i] = checked_malloc(num_commands * sizeof(int));
     }
 
-    //fill in the dependencies (0's and 1's)
+
+    //allocate array where each element is a pointer to the beginning of the command tree
+    char* command_ptrs = (char*) checked_malloc(num_commands * sizeof(char*)); //has ptrs to command tree in forest
+    char* command_list = (char*) checked_malloc(num_commands * sizeof(char*)); //used to keep index of command
+    //NOTE: will use command_list to keep track of what ptr is what and then will move around the ptrs in command_ptrs as we topological sort
+
+
+    //set ptrs in command_ptrs and ptr in command_list to point to the location of the corresponding command in the command_ptrs array
+    int temp_index = 0;
+    while ((command = read_command_stream (command_stream)))
+    {
+      command_ptrs[temp_index] = command_stream->forest[command_stream->cur_case];  //Question: do we have permissions here to look this up?
+      command_list[temp_index] = &(command_ptrs[temp_index]);
+    }
+
+
+    //fill in the dependencies in graph(0's and 1's)
 
     //topological sort and execute
 

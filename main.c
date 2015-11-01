@@ -87,9 +87,13 @@ main (int argc, char **argv)
 
     //topological sort and execute
 
-  }
-  //else run the following code
+          //    last_command = command;
+          // execute_command (command, time_travel);
 
+   // return !last_command ? 0 : command_status (last_command); //check if this is correct
+  }
+  //else //run the following code  -- didnt write else part yet
+  //{
 
   while ((command = read_command_stream (command_stream)))
     {
@@ -106,4 +110,5 @@ main (int argc, char **argv)
     }
 
   return print_tree || !last_command ? 0 : command_status (last_command);
+  //}
 }

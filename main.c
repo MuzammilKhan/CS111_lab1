@@ -54,6 +54,27 @@ main (int argc, char **argv)
 
   command_t last_command = NULL;
   command_t command;
+
+  //If time travel option is set make dependency graph
+  int** graph; 
+  if(time_travel)
+  {
+    //allocate graph[num_commands][num_commands]
+    int num_commands = command_stream->total_cases;
+    graph = (int*) checked_malloc(num_commands * sizeof(int *));
+    for(int i = 0; i < num_commands; i++)
+    {
+      graph[i] = checked_malloc(num_commands * sizeof(int));
+    }
+
+    //fill in the dependencies (0's and 1's)
+
+    //topological sort and execute
+
+  }
+  //else run the following code
+
+
   while ((command = read_command_stream (command_stream)))
     {
       if (print_tree)

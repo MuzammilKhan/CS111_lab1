@@ -49,6 +49,17 @@ parseReadWriteFiles (command_t c, char** readFiles, int& readIndex, char** write
   }
 }
 
+int
+is_dependent(int num_commands, int index1, int index2, char*** readFilesArray, char*** writeFilesArray)
+{
+  //RAW
+    
+
+  //WAW
+
+  //WAR
+}
+
 void
 execute_command_time_travel (command_stream_t command_stream) {
 
@@ -74,30 +85,53 @@ execute_command_time_travel (command_stream_t command_stream) {
     writeIndex[i] = 0; //start each array at 0
   }
 
-  for (int i = 0; i < num_commands; i++) {
+  for (int i = 0; i < num_commands; i++) 
+  {
     parseReadWriteFiles(command_stream[i]);  //form the read/write Files for each command tree
 
     // SHOULD USE HASH MAP FOR BETTER COMPLEXITY
     // RIGHT NOW IS O(N^2), N IS TOTAL NUMBER OF READ/WRITE FILES
 
     //check if there are any dependencies
-    for (int j = 0; j < i; j++) {  //only need to check the command trees before i
-      for(int n = 0; n < readIndex[i]; n++) {
-	for (int m = 0; m < writeIndex[j]; m++) {
-	  if (readFiles[i][n] == writeFiles[j][m]
-	      || writeFiles[i][n] == writeFiles[j][m]
-	      || writeFiles[i][n] == readFiles[j][m]) {
-	    graph[i][j] = 1;
-	  }
-	  else
-	    graph[i][j] = 0;
-	}
+    for (int j = 0; j < i; j++)
+     {  //only need to check the command trees before i
+      for(int n = 0; n < readIndex[i]; n++) 
+      {
+	     for (int m = 0; m < writeIndex[j]; m++)
+        {
+	       if (readFiles[i][n] == writeFiles[j][m]
+	        || writeFiles[i][n] == writeFiles[j][m]
+	        || writeFiles[i][n] == readFiles[j][m]) 
+          {
+	         graph[i][j] = 1;
+	        }
+	        else
+	         graph[i][j] = 0;
+	      }
       }
     }
 
 
   }
 
+  //fill in the graph dependencies
+  for(int i = 0; i < num_commands; i++)
+  {
+    for(int j = 0; j < num_commands; j++)
+    {
+      if(i == j)
+      {
+
+      }
+      else if() 
+      {
+        graph[i][j] = 1;
+      }
+      else
+        graph[i][j] = 0;
+
+    }
+  }
   /*
 
   //allocate array where each element is a pointer to the beginning of the command tree                                                                     

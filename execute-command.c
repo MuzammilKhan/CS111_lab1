@@ -162,16 +162,15 @@ execute_command_time_travel (command_stream_t command_stream) {
     }
    }
   }
-  
-  /*
-                                                                                                       
 
-  //topological sort and execute                                                                                                                            
-
-  //    last_command = command;                                                                                                                       
-  // execute_command (command, time_travel);                                                                                                          
-
-  // return !last_command ? 0 : command_status (last_command); //check if this is correct
+  //execute commands
+  command_t last_command = NULL;
+  for(int i = 0; i < num_commands; i++)
+  {
+    last_command = command_stream->forest[sorted_commands_index[i]]; //command to be executed
+    execute_command(last_command,1); //set time_travel = 1 
+  }
+  return !last_command ? 0 : command_status (last_command);
 
 }
 

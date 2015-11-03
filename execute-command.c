@@ -21,7 +21,36 @@ command_status (command_t c)
 }
 
 void
-execute_command_time_travel (command_t c) {
+parseReadWriteFiles (command_t c, char** readFiles, int& readIndex, char** writeFiles, int& writeIndex) {
+
+  if (c->input != NULL) {
+    readFiles[readIndex++] = c->input;
+  }
+  if (c->output != NULL) {
+    writeFiles[writeIndex++] = c->output;
+  }
+
+  switch(c->type) 
+  {
+  case AND_COMMAND:
+  case SEQUENCE_COMMAND:
+  case OR_COMMAND:
+  case PIPE_COMMAND:
+    {
+      parseReadWriteFiles(c->u.command[0], readFiles, readIndex, writeFiles, writeIndex);
+      parseReadWriteFiles(c->u.command[1], readFiles, readIndex, writeFiles, writeIndex);
+    }
+  case SUBSHELL_COMMAND: 
+    {
+      parseReadWriteFiles(c->u.subshell_command, readFiles, readIndex, writeFiles, writeIndex);
+    }
+  default:
+    ; // do nothing
+  }
+}
+
+void
+execute_command_time_travel (command_stream_t command_stream) {
 
   //allocate graph[num_commands][num_commands]                                                                                                              
   int num_commands = command_stream->total_cases;
@@ -32,6 +61,44 @@ execute_command_time_travel (command_t c) {
     }
 
 
+  char*** readFilesArray, writeFilesArray; //array of readFiles, each readFile holds an array of strings
+  readFiles = (char***) checked_malloc(num_commands * sizeof(char**) );
+  writeFiles = (char***) checked_malloc(num_commands * sizeof(char**) );
+  readIndex = (int *) checked_malloc(num_commands * sizeof(int));
+  writeIndex = (int *) checked_malloc(num_commands * sizeof(int));
+
+  for (int i = 0; i < num_commands; i++) {
+    readFiles[i] = (char**) checked_malloc( 100 * sizeof(char*) ); // enough room for 100 read files per command
+    writeFiles[i] = (char**) checked_malloc( 100 * sizeof(char*) ); // enough room for 100 write files per command
+    readIndex[i] = 0; //start each array at 0
+    writeIndex[i] = 0; //start each array at 0
+  }
+
+  for (int i = 0; i < num_commands; i++) {
+    parseReadWriteFiles(command_stream[i]);  //form the read/write Files for each command tree
+
+    // SHOULD USE HASH MAP FOR BETTER COMPLEXITY
+    // RIGHT NOW IS O(N^2), N IS TOTAL NUMBER OF READ/WRITE FILES
+
+    //check if there are any dependencies
+    for (int j = 0; j < i; j++) {  //only need to check the command trees before i
+      for(int n = 0; n < readIndex[i]; n++) {
+	for (int m = 0; m < writeIndex[j]; m++) {
+	  if (readFiles[i][n] == writeFiles[j][m]
+	      || writeFiles[i][n] == writeFiles[j][m]
+	      || writeFiles[i][n] == readFiles[j][m]) {
+	    graph[i][j] = 1;
+	  }
+	  else
+	    graph[i][j] = 0;
+	}
+      }
+    }
+
+
+  }
+
+  /*
 
   //allocate array where each element is a pointer to the beginning of the command tree                                                                     
   char* command_ptrs = (char*) checked_malloc(num_commands * sizeof(char*)); //has ptrs to command tree in forest                                           
@@ -46,7 +113,7 @@ execute_command_time_travel (command_t c) {
       command_ptrs[temp_index] = command_stream->forest[command_stream->cur_case];  //Question: do we have permissions here to look this up?                  
       command_list[temp_index] = &(command_ptrs[temp_index]);
     }
-
+  */
 
   //fill in the dependencies in graph(0's and 1's)                                                                                                          
 

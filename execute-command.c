@@ -49,17 +49,6 @@ parseReadWriteFiles (command_t c, char** readFiles, int& readIndex, char** write
   }
 }
 
-int
-is_dependent(int num_commands, int index1, int index2, char*** readFilesArray, char*** writeFilesArray)
-{
-  //RAW
-    
-
-  //WAW
-
-  //WAR
-}
-
 void
 execute_command_time_travel (command_stream_t command_stream) {
 
@@ -97,7 +86,7 @@ execute_command_time_travel (command_stream_t command_stream) {
      {  //only need to check the command trees before i
       for(int n = 0; n < readIndex[i]; n++) 
       {
-	     for (int m = 0; m < writeIndex[j]; m++)
+	     for (int m = 0; m < writeIndex[j]; m++) //fill in dependencies
         {
 	       if (readFiles[i][n] == writeFiles[j][m]
 	        || writeFiles[i][n] == writeFiles[j][m]
@@ -114,42 +103,9 @@ execute_command_time_travel (command_stream_t command_stream) {
 
   }
 
-  //fill in the graph dependencies
-  for(int i = 0; i < num_commands; i++)
-  {
-    for(int j = 0; j < num_commands; j++)
-    {
-      if(i == j)
-      {
 
-      }
-      else if() 
-      {
-        graph[i][j] = 1;
-      }
-      else
-        graph[i][j] = 0;
-
-    }
-  }
   /*
-
-  //allocate array where each element is a pointer to the beginning of the command tree                                                                     
-  char* command_ptrs = (char*) checked_malloc(num_commands * sizeof(char*)); //has ptrs to command tree in forest                                           
-  char* command_list = (char*) checked_malloc(num_commands * sizeof(char*)); //used to keep index of command                                                
-  //NOTE: will use command_list to keep track of what ptr is what and then will move around the ptrs in command_ptrs as we topological sort                 
-
-
-  //set ptrs in command_ptrs and ptr in command_list to point to the location of the corresponding command in the command_ptrs array                        
-  int temp_index = 0;
-  while ((command = read_command_stream (command_stream)))
-    {
-      command_ptrs[temp_index] = command_stream->forest[command_stream->cur_case];  //Question: do we have permissions here to look this up?                  
-      command_list[temp_index] = &(command_ptrs[temp_index]);
-    }
-  */
-
-  //fill in the dependencies in graph(0's and 1's)                                                                                                          
+                                                                                                       
 
   //topological sort and execute                                                                                                                            
 

@@ -74,6 +74,19 @@ execute_command_time_travel (command_stream_t command_stream) {
       graph[i] = checked_malloc(num_commands * sizeof(int));
     }
 
+  //setup of 2-D array that keeps track of wheter elements in the graph were visted
+  int visited = (int*) checked_malloc(num_commands * sizeof(int *)); 
+  for(int i = 0; i < num_commands; i++)
+    {
+      visited[i] = checked_malloc(num_commands * sizeof(int));
+    }
+  for(int i = 0; i <num_commands; i++)
+  {
+    for(int j = -; j < num_commands; j++)
+    {
+      visited[i][j] = 0;
+    }
+  }
 
   char*** readFilesArray, writeFilesArray; //array of readFiles, each readFile holds an array of strings
   readFiles = (char***) checked_malloc(num_commands * sizeof(char**) );
@@ -118,6 +131,38 @@ execute_command_time_travel (command_stream_t command_stream) {
   }
 
 
+  //Topological Sort stuff
+  int sorted_commands_index[num_commands]; //array containing index of command once they are sorted
+  int sorted_commands_index_size = 0;
+  int col_sum = 0;
+
+  //Topological Sort Rough Idea
+  while(sorted_commands_index_size != num_commands)
+  {
+  for(int j = 0; j < num_commands; j++)
+   {
+    if(!visited[0][j]) //if this node was visited skip it
+    {
+      col_sum = 0;
+      for(int i = 0; i < num_commands; i++)
+      {
+        if(!visited[i][j]) //if this node was visited skip it
+        {
+         col_sum += graph[i][j];  //sum up values in graph for the column 
+        } 
+      }
+      if(!col_sum) //if the sum of the column is 0, then the node is independent, add to sorted array
+      {
+        sorted_commands_index[sorted_commands_index_size++] = j;
+        for(int m = 0; m < num_commands; m++)
+        {
+         visited[m][j] = 1;
+        }
+      }
+    }
+   }
+  }
+  
   /*
                                                                                                        
 

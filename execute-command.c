@@ -21,6 +21,46 @@ command_status (command_t c)
 }
 
 void
+execute_command_time_travel (command_t c) {
+
+  //allocate graph[num_commands][num_commands]                                                                                                              
+  int num_commands = command_stream->total_cases;
+  graph = (int*) checked_malloc(num_commands * sizeof(int *));
+  for(int i = 0; i < num_commands; i++)
+    {
+      graph[i] = checked_malloc(num_commands * sizeof(int));
+    }
+
+
+
+  //allocate array where each element is a pointer to the beginning of the command tree                                                                     
+  char* command_ptrs = (char*) checked_malloc(num_commands * sizeof(char*)); //has ptrs to command tree in forest                                           
+  char* command_list = (char*) checked_malloc(num_commands * sizeof(char*)); //used to keep index of command                                                
+  //NOTE: will use command_list to keep track of what ptr is what and then will move around the ptrs in command_ptrs as we topological sort                 
+
+
+  //set ptrs in command_ptrs and ptr in command_list to point to the location of the corresponding command in the command_ptrs array                        
+  int temp_index = 0;
+  while ((command = read_command_stream (command_stream)))
+    {
+      command_ptrs[temp_index] = command_stream->forest[command_stream->cur_case];  //Question: do we have permissions here to look this up?                  
+      command_list[temp_index] = &(command_ptrs[temp_index]);
+    }
+
+
+  //fill in the dependencies in graph(0's and 1's)                                                                                                          
+
+  //topological sort and execute                                                                                                                            
+
+  //    last_command = command;                                                                                                                       
+  // execute_command (command, time_travel);                                                                                                          
+
+  // return !last_command ? 0 : command_status (last_command); //check if this is correct
+
+}
+
+
+void
 execute_command (command_t c, int time_travel)
 {
   /* FIXME: Replace this with your implementation.  You may need to

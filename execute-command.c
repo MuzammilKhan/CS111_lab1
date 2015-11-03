@@ -41,6 +41,13 @@ parseReadWriteFiles (command_t c, char** readFiles, int& readIndex, char** write
       parseReadWriteFiles(c->u.command[0], readFiles, readIndex, writeFiles, writeIndex);
       parseReadWriteFiles(c->u.command[1], readFiles, readIndex, writeFiles, writeIndex);
     }
+  case SIMPLE_COMMAND:
+    {
+      if(c->u.word != NULL)
+      {
+        readFiles[readIndex++] = c->u.word;
+      }
+    }
   case SUBSHELL_COMMAND: 
     {
       parseReadWriteFiles(c->u.subshell_command, readFiles, readIndex, writeFiles, writeIndex);

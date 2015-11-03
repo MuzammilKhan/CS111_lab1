@@ -12,6 +12,7 @@
 #include <sys/wait.h> //waitpid and WEXITSTATUS
 #include <sys/types.h>
 #include <stdio.h> // debugging
+#include <string.h> //strcmp
 #include <fcntl.h>
 
 int
@@ -88,9 +89,9 @@ execute_command_time_travel (command_stream_t command_stream) {
       {
 	     for (int m = 0; m < writeIndex[j]; m++) //fill in dependencies
         {
-	       if (readFiles[i][n] == writeFiles[j][m]
-	        || writeFiles[i][n] == writeFiles[j][m]
-	        || writeFiles[i][n] == readFiles[j][m]) 
+	       if (strcmp(readFiles[i][n] , writeFiles[j][m])
+	        || strcmp(writeFiles[i][n] , writeFiles[j][m])
+	        || strcmp(writeFiles[i][n] , readFiles[j][m]))
           {
 	         graph[i][j] = 1;
 	        }

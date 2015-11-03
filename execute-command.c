@@ -45,7 +45,13 @@ parseReadWriteFiles (command_t c, char** readFiles, int& readIndex, char** write
     {
       if(c->u.word != NULL)
       {
-        readFiles[readIndex++] = c->u.word;
+        char* beg_read_list = c->u.word;
+        while(beg_read_list != ' ')
+        {
+          beg_read_list++;
+        }
+        beg_read_list++;
+        readFiles[readIndex++] = beg_read_list;
       }
     }
   case SUBSHELL_COMMAND: 

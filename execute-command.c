@@ -173,8 +173,6 @@ execute_command_time_travel (command_stream_t command_stream) {
     }
   }
 
-  fprintf(stderr, "REACHED HERE\n");
-
   int a,b;
   //TEST DEPENDENCY GRAPH
   for (a = 0; a < num_commands; a++) {
@@ -183,8 +181,107 @@ execute_command_time_travel (command_stream_t command_stream) {
     }
     fprintf(stderr,"\n");
   }
-  fprintf(stderr, "REACHED END");
+
+
+  //TOPOLOGICAL SORT
+
+  //will store the sorted order of the commands to be processed in order
+  //first number n for each int array will indicate how many commands to run in parallel
+  //next n numbers will be the commands that we run in parallel at this step
+  //i.e. sortedOrder[1] = [3, 5, 6, 9]
+  //this means 3 commands, (5,6,9), should be run in parallel at this time
+  int** sortedOrder = (int**) checked_malloc (num_commands * sizeof(int*));
+  int sortedStep = 0;
+  for (i = 0; i < num_commands; i++) {
+    sortedOrder[i] = (int*) checked_malloc ((num_commands+1) * sizeof(int*)); //each step can execute n commands, plus first index for command sum
+  }
+
+
+  int* dependentEdges = (int*) checked_malloc (num_commands * sizeof(int));
+
+  //fill in dependent edges
+  for (i = 0; i < num_commands; i++) {
+    dependentEdges[i] = 0;
+    for (j = 0; j < i; j++) { //must be strictly less than i, dont want to overcount by 1
+      if (graph[i][j] == 1)
+	dependentEdges[i]++;
+    }
+    fprintf(stderr, "%i\n", dependentEdges[i]);
+  }
+
+  int processedCommands = 0;
+  int* processedCommandsList = (int*) checked_malloc (num_commands * sizeof(int) * 2);
+  //each turn we can execute commands with 0 dependencies
+  while (processedCommands < num_commands)
+  {
+    int commandCounter = 0; 
+    for (i = 0; i < num_commands; i++) {
+      int alreadySeen = 0;
+      int counter;
+      //if the command already processed/seen, don't process it again
+      for (counter = 0; counter < processedCommands; counter++) {
+	if (processedCommandsList[counter] == i) {
+	  alreadySeen = 1;
+	}
+      }
+      
+      //add counter to current step as well as overall counter
+      if (alreadySeen == 0 && dependentEdges[i] == 0) {
+	sortedOrder[sortedStep][1+commandCounter] = i;
+	commandCounter++;
+	processedCommandsList[processedCommands] = i;
+	processedCommands++;
+      }
+    }
+    sortedOrder[sortedStep][0] = commandCounter;
+
+    //remove dependencies to processed commands                                                                                                                                         
+    for (i = 1; i < sortedOrder[sortedStep][0]+1; i++) {
+      int removedCommand = sortedOrder[sortedStep][i];
+      for (j = removedCommand+1; j < num_commands; j++) {
+	if (graph[j][removedCommand] == 1 && dependentEdges[j] > 0)
+	  dependentEdges[j]--;
+      }
+    }
+    sortedStep++;
+  }
+
+  //TEST
+  for (i = 0; i < sortedStep; i++) {
+    fprintf(stderr, "\nStep %i: ", i);
+    for (j = 1; j < sortedOrder[i][0]+1; j++) {
+      fprintf(stderr, "%i ", sortedOrder[i][j]);
+    }
+  }
+
+
+  //DOESNT WORK
+  //EXECUTE THE COMMANDS IN EACH STEP IN PARALLEL
+
+  for (i = 0; i < sortedStep; i++) {
+    for (j = 1; j < sortedOrder[i][0]+1; j++) {
+      pid_t pid;
+      if (!(pid=fork())) {
+	  command_t cmd = parse(command_stream->forest[sortedOrder[i][j]]);
+	  execute_command(cmd, 1);
+	  exit(0);
+      }
+      else {
+	; //keep looping and forking children
+      }
+    }
+    for (j = 1; j < sortedOrder[i][0]+1; j++) {
+      int status;
+      waitpid(-1, &status, 0);
+      fprintf(stderr, "Waited for %i\n", j);
+    }
+  }
+
+
   return;
+
+
+
 
   //Topological Sort stuff
   int sorted_commands_index[num_commands]; //array containing index of command once they are sorted

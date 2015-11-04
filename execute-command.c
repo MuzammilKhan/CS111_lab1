@@ -276,6 +276,7 @@ execute_command_time_travel (command_stream_t command_stream) {
     for (j = 1; j < sortedOrder[i][0]+1; j++) 
     {
       int status;
+      fprintf(stderr, "Waiting for %i\n", j);
       waitpid(-1, &status, 0);
       fprintf(stderr, "Waited for %i\n", j);
     }

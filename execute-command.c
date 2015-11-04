@@ -258,19 +258,23 @@ execute_command_time_travel (command_stream_t command_stream) {
   //DOESNT WORK
   //EXECUTE THE COMMANDS IN EACH STEP IN PARALLEL
 
-  for (i = 0; i < sortedStep; i++) {
-    for (j = 1; j < sortedOrder[i][0]+1; j++) {
+  for (i = 0; i < sortedStep; i++) 
+  {
+    for (j = 1; j < sortedOrder[i][0]+1; j++) 
+    {
       pid_t pid;
-      if (!(pid=fork())) {
-	  command_t cmd = parse(command_stream->forest[sortedOrder[i][j]]);
-	  execute_command(cmd, 1);
-	  exit(0);
+      if (!(pid=fork())) 
+      {
+	     command_t cmd = parse(command_stream->forest[sortedOrder[i][j]]);
+	     execute_command(cmd, 1);
+	     exit(0);
       }
-      else {
-	; //keep looping and forking children
-      }
+     
+	     //do nothing and keep looping and forking children
+      
     }
-    for (j = 1; j < sortedOrder[i][0]+1; j++) {
+    for (j = 1; j < sortedOrder[i][0]+1; j++) 
+    {
       int status;
       waitpid(-1, &status, 0);
       fprintf(stderr, "Waited for %i\n", j);
@@ -278,42 +282,7 @@ execute_command_time_travel (command_stream_t command_stream) {
   }
 
 
-  return;
-
-
-
-
-  //Topological Sort stuff
-  int sorted_commands_index[num_commands]; //array containing index of command once they are sorted
-  int sorted_commands_index_size = 0;
-  int col_sum = 0;
-
-  //Topological Sort Rough Idea
-  while(sorted_commands_index_size != num_commands)
-  {
-  for(j = 0; j < num_commands; j++)
-   {
-    if(!visited[0][j]) //if this node was visited skip it
-    {
-      col_sum = 0;
-      for(i = 0; i < num_commands; i++)
-      {
-        if(!visited[i][j]) //if this node was visited skip it
-        {
-         col_sum += graph[i][j];  //sum up values in graph for the column 
-        } 
-      }
-      if(!col_sum) //if the sum of the column is 0, then the node is independent, add to sorted array
-      {
-        sorted_commands_index[sorted_commands_index_size++] = j;
-        for(m = 0; m < num_commands; m++)
-        {
-         visited[m][j] = 1;
-        }
-      }
-    }
-   }
-  }
+  return; //should return status of last command, something like what was done in the comment below
 
   //execute commands
   /*

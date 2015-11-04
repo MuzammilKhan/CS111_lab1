@@ -1,5 +1,12 @@
 // UCLA CS 111 Lab 1 command interface
 
+struct command_stream
+{
+  int total_cases;
+  int cur_case;
+  char** forest; // keep a command forest                                                                                                                                                   
+};
+
 typedef struct command *command_t;
 typedef struct command_stream *command_stream_t;
 
@@ -13,8 +20,17 @@ command_stream_t make_command_stream (int (*getbyte) (void *), void *arg);
    an error, report the error and exit instead of returning.  */
 command_t read_command_stream (command_stream_t stream);
 
+/* Makes a command tree out of a c-string */
+command_t parse(char* input);
+
 /* Print a command to stdout, for debugging.  */
 void print_command (command_t);
+
+
+void parseReadWriteFiles (command_t c, char** readFiles, int* readIndex, char** writeFiles, int* writeIndex);
+
+/* Executes commands in time travel mode*/
+void execute_command_time_travel(command_stream_t stream);
 
 /* Execute a command.  Use "time travel" if the integer flag is
    nonzero.  */

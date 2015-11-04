@@ -59,9 +59,8 @@ main (int argc, char **argv)
   int** graph; 
   if(time_travel)
   {
-    execute_command_time_time_travel(command_stream);
-
-
+    execute_command_time_travel(command_stream);
+    return 0;
   }
   else
   {

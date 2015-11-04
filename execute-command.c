@@ -1,5 +1,6 @@
 // UCLA CS 111 Lab 1 command execution
 
+#include "alloc.h"
 #include "command.h"
 #include "command-internals.h"
 
@@ -22,13 +23,13 @@ command_status (command_t c)
 }
 
 void
-parseReadWriteFiles (command_t c, char** readFiles, int& readIndex, char** writeFiles, int& writeIndex) {
+parseReadWriteFiles (command_t c, char** readFiles, int* readIndex, char** writeFiles, int* writeIndex) {
 
   if (c->input != NULL) {
-    readFiles[readIndex++] = c->input;
+    readFiles[(*readIndex)++] = c->input;
   }
   if (c->output != NULL) {
-    writeFiles[writeIndex++] = c->output;
+    writeFiles[(*writeIndex)++] = c->output;
   }
 
   switch(c->type) 
@@ -43,15 +44,16 @@ parseReadWriteFiles (command_t c, char** readFiles, int& readIndex, char** write
     }
   case SIMPLE_COMMAND:
     {
-      if(c->u.word != NULL)
+      if(c->u.word != NULL && c->u.word[1] != NULL)
       {
-        char* beg_read_list = c->u.word;
-        while(beg_read_list != ' ')
+        char* beg_read_list = c->u.word[1];
+        /*while(beg_read_list != ' ')
         {
           beg_read_list++;
         }
         beg_read_list++;
-        readFiles[readIndex++] = beg_read_list;
+        readFiles[(*readIndex)++] = beg_read_list;
+	*/
       }
     }
   case SUBSHELL_COMMAND: 
@@ -68,68 +70,84 @@ execute_command_time_travel (command_stream_t command_stream) {
 
   //allocate graph[num_commands][num_commands]                                                                                                              
   int num_commands = command_stream->total_cases;
-  graph = (int*) checked_malloc(num_commands * sizeof(int *));
-  for(int i = 0; i < num_commands; i++)
+  fprintf(stderr, "%i", num_commands);
+  int** graph = (int**) checked_malloc(num_commands * sizeof(int *));
+  int i,j;
+  for(i = 0; i < num_commands; i++)
     {
       graph[i] = checked_malloc(num_commands * sizeof(int));
     }
 
-  //setup of 2-D array that keeps track of wheter elements in the graph were visted
-  int visited = (int*) checked_malloc(num_commands * sizeof(int *)); 
-  for(int i = 0; i < num_commands; i++)
+  //setup of 2-D array that keeps track of whether elements in the graph were visted
+  int** visited = (int**) checked_malloc(num_commands * sizeof(int *)); 
+  for(i = 0; i < num_commands; i++)
     {
       visited[i] = checked_malloc(num_commands * sizeof(int));
     }
-  for(int i = 0; i <num_commands; i++)
+  for(i = 0; i <num_commands; i++)
   {
-    for(int j = -; j < num_commands; j++)
+    for(j = 0; j < num_commands; j++)
     {
       visited[i][j] = 0;
     }
   }
 
-  char*** readFilesArray, writeFilesArray; //array of readFiles, each readFile holds an array of strings
-  readFiles = (char***) checked_malloc(num_commands * sizeof(char**) );
-  writeFiles = (char***) checked_malloc(num_commands * sizeof(char**) );
-  readIndex = (int *) checked_malloc(num_commands * sizeof(int));
-  writeIndex = (int *) checked_malloc(num_commands * sizeof(int));
+  //array of readFiles, each readFile holds an array of strings
+  char ***readFilesArray = (char***) checked_malloc(num_commands * sizeof(char**) );
+  char*** writeFilesArray = (char***) checked_malloc(num_commands * sizeof(char**) );
+  
+  int* readIndex = (int *) checked_malloc(num_commands * sizeof(int));
+  int* writeIndex = (int *) checked_malloc(num_commands * sizeof(int));
 
-  for (int i = 0; i < num_commands; i++) {
-    readFiles[i] = (char**) checked_malloc( 100 * sizeof(char*) ); // enough room for 100 read files per command
-    writeFiles[i] = (char**) checked_malloc( 100 * sizeof(char*) ); // enough room for 100 write files per command
+  for (i = 0; i < num_commands; i++) {
+    readFilesArray[i] = (char**) checked_malloc( 100 * sizeof(char*) ); // enough room for 100 read files per command
+    writeFilesArray[i] = (char**) checked_malloc( 100 * sizeof(char*) ); // enough room for 100 write files per command
     readIndex[i] = 0; //start each array at 0
     writeIndex[i] = 0; //start each array at 0
   }
 
-  for (int i = 0; i < num_commands; i++) 
+  int n,m;
+
+  for (i = 0; i < num_commands; i++) 
   {
-    parseReadWriteFiles(command_stream[i]);  //form the read/write Files for each command tree
+    struct command* cmd = parse(command_stream->forest[i]);
+    parseReadWriteFiles(cmd, readFilesArray[i], &readIndex[i], writeFilesArray[i], &writeIndex[i]);  //form the read/write Files for each command tree
 
     // SHOULD USE HASH MAP FOR BETTER COMPLEXITY
     // RIGHT NOW IS O(N^2), N IS TOTAL NUMBER OF READ/WRITE FILES
 
     //check if there are any dependencies
-    for (int j = 0; j < i; j++)
+    for (j = 0; j < i; j++)
      {  //only need to check the command trees before i
-      for(int n = 0; n < readIndex[i]; n++) 
+      for(n = 0; n < readIndex[i]; n++) 
       {
-	     for (int m = 0; m < writeIndex[j]; m++) //fill in dependencies
+	     for (m = 0; m < writeIndex[j]; m++) //fill in dependencies
         {
-	       if (strcmp(readFiles[i][n] , writeFiles[j][m])
-	        || strcmp(writeFiles[i][n] , writeFiles[j][m])
-	        || strcmp(writeFiles[i][n] , readFiles[j][m]))
-          {
+	       if (!strcmp(readFilesArray[i][n] , writeFilesArray[j][m])
+	        || !strcmp(writeFilesArray[i][n] , writeFilesArray[j][m])
+		|| !strcmp(writeFilesArray[i][n] , readFilesArray[j][m]) ) // strcmp returns zero for match
+	       {
 	         graph[i][j] = 1;
-	        }
-	        else
+	       }
+	       else
+	       {
 	         graph[i][j] = 0;
-	      }
+	       }
+	}
       }
     }
-
-
   }
 
+  int a,b;
+  //TEST DEPENDENCY GRAPH
+  for (a = 0; a < num_commands; a++) {
+    for (b = 0; b < a; b++) {
+      fprintf(stderr,"%i " ,graph[i][j]);
+    }
+    fprintf(stderr,"\n");
+  }
+  fprintf(stderr, "REACHED END");
+  return;
 
   //Topological Sort stuff
   int sorted_commands_index[num_commands]; //array containing index of command once they are sorted
@@ -139,12 +157,12 @@ execute_command_time_travel (command_stream_t command_stream) {
   //Topological Sort Rough Idea
   while(sorted_commands_index_size != num_commands)
   {
-  for(int j = 0; j < num_commands; j++)
+  for(j = 0; j < num_commands; j++)
    {
     if(!visited[0][j]) //if this node was visited skip it
     {
       col_sum = 0;
-      for(int i = 0; i < num_commands; i++)
+      for(i = 0; i < num_commands; i++)
       {
         if(!visited[i][j]) //if this node was visited skip it
         {
@@ -154,7 +172,7 @@ execute_command_time_travel (command_stream_t command_stream) {
       if(!col_sum) //if the sum of the column is 0, then the node is independent, add to sorted array
       {
         sorted_commands_index[sorted_commands_index_size++] = j;
-        for(int m = 0; m < num_commands; m++)
+        for(m = 0; m < num_commands; m++)
         {
          visited[m][j] = 1;
         }
@@ -164,14 +182,15 @@ execute_command_time_travel (command_stream_t command_stream) {
   }
 
   //execute commands
+  /*
   command_t last_command = NULL;
-  for(int i = 0; i < num_commands; i++)
+  for(i = 0; i < num_commands; i++)
   {
     last_command = command_stream->forest[sorted_commands_index[i]]; //command to be executed
     execute_command(last_command,1); //set time_travel = 1 
   }
   return !last_command ? 0 : command_status (last_command);
-
+  */
 }
 
 

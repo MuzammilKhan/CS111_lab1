@@ -16,12 +16,14 @@ void* getbyte_arg;
 
 bool isValidWordChar(char c);
 
+/* DEFINED IN COMMAND.H
 struct command_stream
 {
         int total_cases;
         int cur_case;
 	char** forest; // keep a command forest
 };
+*/
 
 void  split_forest(struct command_stream* resultStream, char* buffer, int buffer_length) {
   char** forest = resultStream->forest;

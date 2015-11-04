@@ -14,11 +14,19 @@ cat < a.txt
 
 cat < a.txt
 
+cat > b.txt
+
 cat > a.txt
 
-cat < b.txt > c.txt
+ls < a.txt
 
-cat > c.txt
+cat < b.txt
+
+ls
+
+cat < a.txt > b.txt
+
+ls
 
 EOF
 

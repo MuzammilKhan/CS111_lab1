@@ -16,6 +16,12 @@
 #include <string.h> //strcmp
 #include <fcntl.h>
 
+int max(int a, int b) {
+  if (a>b)
+    return a;
+  return b;
+}
+
 int
 command_status (command_t c)
 {
@@ -24,14 +30,15 @@ command_status (command_t c)
 
 void
 parseReadWriteFiles (command_t c, char** readFiles, int* readIndex, char** writeFiles, int* writeIndex) {
-
   if (c->input != NULL) {
     readFiles[(*readIndex)++] = c->input;
+    fprintf(stderr, "increment!");
   }
   if (c->output != NULL) {
     writeFiles[(*writeIndex)++] = c->output;
+    fprintf(stderr, "outcrement!");
   }
-
+  
   switch(c->type) 
   {
   case AND_COMMAND:
@@ -46,7 +53,7 @@ parseReadWriteFiles (command_t c, char** readFiles, int* readIndex, char** write
     {
       if(c->u.word != NULL && c->u.word[1] != NULL)
       {
-        char* beg_read_list = c->u.word[1];
+        readFiles[(*readIndex)++] = c->u.word[1];
         /*while(beg_read_list != ' ')
         {
           beg_read_list++;
@@ -119,30 +126,46 @@ execute_command_time_travel (command_stream_t command_stream) {
     //check if there are any dependencies
     for (j = 0; j < i; j++)
      {  //only need to check the command trees before i
-      for(n = 0; n < readIndex[i]; n++) 
+       int nlimit = max(writeIndex[i], readIndex[i]);
+      for(n = 0; n < nlimit; n++) 
       {
-	     for (m = 0; m < writeIndex[j]; m++) //fill in dependencies
+	int mlimit = max(writeIndex[j], readIndex[j]);
+	for (m = 0; m < mlimit; m++) //fill in dependencies
         {
-	       if (!strcmp(readFilesArray[i][n] , writeFilesArray[j][m])
-	        || !strcmp(writeFilesArray[i][n] , writeFilesArray[j][m])
-		|| !strcmp(writeFilesArray[i][n] , readFilesArray[j][m]) ) // strcmp returns zero for match
-	       {
-	         graph[i][j] = 1;
-	       }
-	       else
-	       {
-	         graph[i][j] = 0;
-	       }
+	  fprintf(stderr, "n is %i m is %i i is %i j is %i\n", n, m, i, j);
+	  if ( n < readIndex[i] && m < writeIndex[j]
+	       && !strcmp(readFilesArray[i][n] , writeFilesArray[j][m]) ) {
+	    graph[i][j] = 1;
+	    fprintf(stderr, "REACHED IF");
+	  }
+
+	  else if ( n < writeIndex[i] && m < writeIndex[j]
+	       && !strcmp(writeFilesArray[i][n] , writeFilesArray[j][m]) ) {
+	    graph[i][j] = 1;
+	    fprintf(stderr, "REACHED ELSEIF1");
+	  }
+	  
+	  else if ( n < writeIndex[i] && m < readIndex[j]
+		    && !strcmp(writeFilesArray[i][n] , readFilesArray[j][m]) ) {
+	    graph[i][j] = 1;
+	    fprintf(stderr, "REACHED ELSEIF2");
+	  }
+	  else {
+	    graph[i][j] = 0;
+	    fprintf(stderr, "REACHED ELSE");
+	  }
 	}
       }
     }
   }
 
+  fprintf(stderr, "REACHED HERE\n");
+
   int a,b;
   //TEST DEPENDENCY GRAPH
   for (a = 0; a < num_commands; a++) {
-    for (b = 0; b < a; b++) {
-      fprintf(stderr,"%i " ,graph[i][j]);
+    for (b = 0; b <= a; b++) {
+      fprintf(stderr,"%i ", graph[a][b]);
     }
     fprintf(stderr,"\n");
   }

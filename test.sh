@@ -23,13 +23,16 @@ ls | sort
 
 ls || sort
 
-cat < words.txt
-
+cat < words.txt;
 (sort words.txt)
 
 echo hello
 
-(echo done);(echo now) 
+ls && ls
+
+(echo done);(echo now)
+
+(cat) < words.txt
 EOF
 
 

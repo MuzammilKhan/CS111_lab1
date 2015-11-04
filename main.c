@@ -60,7 +60,7 @@ main (int argc, char **argv)
   if(time_travel)
   {
     execute_command_time_travel(command_stream);
-    return 0;
+    return 1;
   }
   else
   {

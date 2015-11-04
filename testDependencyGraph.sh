@@ -10,19 +10,21 @@ cd "$tmp" || exit
 
 cat >testtemp.sh <<'EOF'
 
-cat < a.txt
+cat > b.txt || ls > c.txt
 
-cat < a.txt
+cat a.txt < b.txt
 
 cat > b.txt
 
 cat > a.txt
 
+cat a.txt c.txt
+
 ls < a.txt
 
 cat < b.txt
 
-ls
+ls > c.txt
 
 cat < a.txt > b.txt
 

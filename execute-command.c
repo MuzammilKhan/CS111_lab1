@@ -30,14 +30,6 @@ command_status (command_t c)
 
 void
 parseReadWriteFiles (command_t c, char** readFiles, int* readIndex, char** writeFiles, int* writeIndex) {
-  if (c->input != NULL) {
-    readFiles[(*readIndex)++] = c->input;
-    fprintf(stderr, "increment!");
-  }
-  if (c->output != NULL) {
-    writeFiles[(*writeIndex)++] = c->output;
-    fprintf(stderr, "outcrement!");
-  }
   
   switch(c->type) 
   {
@@ -48,13 +40,28 @@ parseReadWriteFiles (command_t c, char** readFiles, int* readIndex, char** write
     {
       parseReadWriteFiles(c->u.command[0], readFiles, readIndex, writeFiles, writeIndex);
       parseReadWriteFiles(c->u.command[1], readFiles, readIndex, writeFiles, writeIndex);
+      break;
     }
   case SIMPLE_COMMAND:
     {
-      if(c->u.word != NULL && c->u.word[1] != NULL)
+      if (c->input != NULL) {
+	readFiles[(*readIndex)++] = c->input;
+	fprintf(stderr, "r+%s %i\n", c->input, *readIndex);
+      }
+      if (c->output != NULL) {
+	writeFiles[(*writeIndex)++] = c->output;
+	fprintf(stderr, "w+%s %i\n", c->output, *writeIndex);
+      }
+
+      if(c->u.word != NULL)
       {
-        readFiles[(*readIndex)++] = c->u.word[1];
-        /*while(beg_read_list != ' ')
+	int i = 1;
+	while (c->u.word[i] != NULL) {
+	  readFiles[(*readIndex)++] = c->u.word[i];
+	  fprintf(stderr, "r+%s %i\n", c->u.word[i], *readIndex);
+	  i++;
+        }
+	/*while(beg_read_list != ' ')
         {
           beg_read_list++;
         }
@@ -62,10 +69,20 @@ parseReadWriteFiles (command_t c, char** readFiles, int* readIndex, char** write
         readFiles[(*readIndex)++] = beg_read_list;
 	*/
       }
+      break;
     }
   case SUBSHELL_COMMAND: 
     {
+      if (c->input != NULL) {
+	readFiles[(*readIndex)++] = c->input;
+        fprintf(stderr, "r+%s %i\n", c->input, *readIndex);
+      }
+      if (c->output != NULL) {
+	writeFiles[(*writeIndex)++] = c->output;
+        fprintf(stderr, "w+%s %i\n", c->output, *writeIndex);
+      }
       parseReadWriteFiles(c->u.subshell_command, readFiles, readIndex, writeFiles, writeIndex);
+      break;
     }
   default:
     ; // do nothing
@@ -77,7 +94,7 @@ execute_command_time_travel (command_stream_t command_stream) {
 
   //allocate graph[num_commands][num_commands]                                                                                                              
   int num_commands = command_stream->total_cases;
-  fprintf(stderr, "%i", num_commands);
+  fprintf(stderr, "%i\n", num_commands);
   int** graph = (int**) checked_malloc(num_commands * sizeof(int *));
   int i,j;
   for(i = 0; i < num_commands; i++)
@@ -124,7 +141,7 @@ execute_command_time_travel (command_stream_t command_stream) {
     // RIGHT NOW IS O(N^2), N IS TOTAL NUMBER OF READ/WRITE FILES
 
     //check if there are any dependencies
-    for (j = 0; j < i; j++)
+    for (j = 0; j <= i; j++)
      {  //only need to check the command trees before i
        int nlimit = max(writeIndex[i], readIndex[i]);
       for(n = 0; n < nlimit; n++) 
@@ -136,23 +153,19 @@ execute_command_time_travel (command_stream_t command_stream) {
 	  if ( n < readIndex[i] && m < writeIndex[j]
 	       && !strcmp(readFilesArray[i][n] , writeFilesArray[j][m]) ) {
 	    graph[i][j] = 1;
-	    fprintf(stderr, "REACHED IF");
+	    fprintf(stderr, "REACHED IF\n");
 	  }
 
 	  else if ( n < writeIndex[i] && m < writeIndex[j]
 	       && !strcmp(writeFilesArray[i][n] , writeFilesArray[j][m]) ) {
 	    graph[i][j] = 1;
-	    fprintf(stderr, "REACHED ELSEIF1");
+	    fprintf(stderr, "REACHED ELSEIF1\n");
 	  }
 	  
 	  else if ( n < writeIndex[i] && m < readIndex[j]
 		    && !strcmp(writeFilesArray[i][n] , readFilesArray[j][m]) ) {
 	    graph[i][j] = 1;
-	    fprintf(stderr, "REACHED ELSEIF2");
-	  }
-	  else {
-	    graph[i][j] = 0;
-	    fprintf(stderr, "REACHED ELSE");
+	    fprintf(stderr, "REACHED ELSEIF2\n");
 	  }
 	}
       }

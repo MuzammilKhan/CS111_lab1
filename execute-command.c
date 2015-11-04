@@ -265,9 +265,11 @@ execute_command_time_travel (command_stream_t command_stream) {
       pid_t pid;
       if (!(pid=fork())) 
       {
-       fprintf(stderr, "Executing  %i\n", j);
+       fprintf(stderr, "Executing:  %i\n", j);
 	     command_t cmd = parse(command_stream->forest[sortedOrder[i][j]]);
+       fprintf(stderr, "Executing pt2: %i\n", j);
 	     execute_command(cmd, 1);
+       fprintf(stderr, "Executing pt3: %i\n", j);
 	     exit(0);
       }
      

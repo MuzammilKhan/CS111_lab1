@@ -168,6 +168,7 @@ execute_command_time_travel (command_stream_t command_stream) {
 	    fprintf(stderr, "REACHED ELSEIF2\n");
 	  }
 	}
+	fprintf(stderr, "graph[%i][%i] is %i\n", i, j, graph[i][j]);
       }
     }
   }

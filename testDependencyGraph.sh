@@ -14,7 +14,7 @@ cat > b.txt || ls > c.txt
 
 cat a.txt < b.txt
 
-cat > b.txt
+(cat) > b.txt
 
 cat > a.txt
 
@@ -24,7 +24,7 @@ ls < a.txt
 
 cat < b.txt
 
-ls > c.txt
+ls > c.txt | cat && cat b.txt
 
 cat < a.txt > b.txt
 

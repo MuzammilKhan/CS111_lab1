@@ -46,11 +46,11 @@ parseReadWriteFiles (command_t c, char** readFiles, int* readIndex, char** write
     {
       if (c->input != NULL) {
 	readFiles[(*readIndex)++] = c->input;
-	fprintf(stderr, "r+%s %i\n", c->input, *readIndex);
+	//fprintf(stderr, "r+%s %i\n", c->input, *readIndex);
       }
       if (c->output != NULL) {
 	writeFiles[(*writeIndex)++] = c->output;
-	fprintf(stderr, "w+%s %i\n", c->output, *writeIndex);
+	//fprintf(stderr, "w+%s %i\n", c->output, *writeIndex);
       }
 
       if(c->u.word != NULL)
@@ -58,7 +58,7 @@ parseReadWriteFiles (command_t c, char** readFiles, int* readIndex, char** write
 	int i = 1;
 	while (c->u.word[i] != NULL) {
 	  readFiles[(*readIndex)++] = c->u.word[i];
-	  fprintf(stderr, "r+%s %i\n", c->u.word[i], *readIndex);
+	  //fprintf(stderr, "r+%s %i\n", c->u.word[i], *readIndex);
 	  i++;
         }
 	/*while(beg_read_list != ' ')
@@ -75,11 +75,11 @@ parseReadWriteFiles (command_t c, char** readFiles, int* readIndex, char** write
     {
       if (c->input != NULL) {
 	readFiles[(*readIndex)++] = c->input;
-        fprintf(stderr, "r+%s %i\n", c->input, *readIndex);
+        //fprintf(stderr, "r+%s %i\n", c->input, *readIndex);
       }
       if (c->output != NULL) {
 	writeFiles[(*writeIndex)++] = c->output;
-        fprintf(stderr, "w+%s %i\n", c->output, *writeIndex);
+        //fprintf(stderr, "w+%s %i\n", c->output, *writeIndex);
       }
       parseReadWriteFiles(c->u.subshell_command, readFiles, readIndex, writeFiles, writeIndex);
       break;
@@ -94,7 +94,7 @@ execute_command_time_travel (command_stream_t command_stream) {
 
   //allocate graph[num_commands][num_commands]                                                                                                              
   int num_commands = command_stream->total_cases;
-  fprintf(stderr, "%i\n", num_commands);
+  //fprintf(stderr, "%i\n", num_commands);
   int** graph = (int**) checked_malloc(num_commands * sizeof(int *));
   int i,j;
   for(i = 0; i < num_commands; i++)
@@ -149,39 +149,41 @@ execute_command_time_travel (command_stream_t command_stream) {
 	int mlimit = max(writeIndex[j], readIndex[j]);
 	for (m = 0; m < mlimit; m++) //fill in dependencies
         {
-	  fprintf(stderr, "n is %i m is %i i is %i j is %i\n", n, m, i, j);
+	  //fprintf(stderr, "n is %i m is %i i is %i j is %i\n", n, m, i, j);
 	  if ( n < readIndex[i] && m < writeIndex[j]
 	       && !strcmp(readFilesArray[i][n] , writeFilesArray[j][m]) ) {
 	    graph[i][j] = 1;
-	    fprintf(stderr, "REACHED IF\n");
+	    //fprintf(stderr, "REACHED IF\n");
 	  }
 
 	  else if ( n < writeIndex[i] && m < writeIndex[j]
 	       && !strcmp(writeFilesArray[i][n] , writeFilesArray[j][m]) ) {
 	    graph[i][j] = 1;
-	    fprintf(stderr, "REACHED ELSEIF1\n");
+	    //fprintf(stderr, "REACHED ELSEIF1\n");
 	  }
 	  
 	  else if ( n < writeIndex[i] && m < readIndex[j]
 		    && !strcmp(writeFilesArray[i][n] , readFilesArray[j][m]) ) {
 	    graph[i][j] = 1;
-	    fprintf(stderr, "REACHED ELSEIF2\n");
+	    //fprintf(stderr, "REACHED ELSEIF2\n");
 	  }
 	}
-	fprintf(stderr, "graph[%i][%i] is %i\n", i, j, graph[i][j]);
+	//fprintf(stderr, "graph[%i][%i] is %i\n", i, j, graph[i][j]);
       }
     }
   }
 
+  /*
   int a,b;
   //TEST DEPENDENCY GRAPH
+  
   for (a = 0; a < num_commands; a++) {
     for (b = 0; b <= a; b++) {
       fprintf(stderr,"%i ", graph[a][b]);
     }
     fprintf(stderr,"\n");
   }
-
+  */
 
   //TOPOLOGICAL SORT
 
@@ -206,7 +208,7 @@ execute_command_time_travel (command_stream_t command_stream) {
       if (graph[i][j] == 1)
 	dependentEdges[i]++;
     }
-    fprintf(stderr, "%i\n", dependentEdges[i]);
+    //fprintf(stderr, "%i\n", dependentEdges[i]);
   }
 
   int processedCommands = 0;
@@ -247,16 +249,16 @@ execute_command_time_travel (command_stream_t command_stream) {
   }
 
   //TEST
+  /*
   for (i = 0; i < sortedStep; i++) {
     fprintf(stderr, "\nStep %i: ", i);
     for (j = 1; j < sortedOrder[i][0]+1; j++) {
       fprintf(stderr, "%i ", sortedOrder[i][j]);
     }
   }
+  */
 
-
-  //DOESNT WORK
-  //EXECUTE THE COMMANDS IN EACH STEP IN PARALLEL
+    //EXECUTE THE COMMANDS IN EACH STEP IN PARALLEL
 
   pid_t* processesToWait = (pid_t*) checked_malloc (num_commands * sizeof(pid_t));
 
@@ -276,7 +278,7 @@ execute_command_time_travel (command_stream_t command_stream) {
     for (j = 1; j < sortedOrder[i][0]+1; j++) {
       int status;
       waitpid(processesToWait[j], &status, 0);
-      fprintf(stderr, "Waited for %i\n", j);
+      //fprintf(stderr, "Waited for %i\n", j);
     }
   }
 

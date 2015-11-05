@@ -68,5 +68,15 @@ main.c, and created two new test files testDependencyGraph.sh and testParallel.s
 of what elements we have already visited. We then used topological sort to break up the commands in the forest into steps. We then executed each step 
 in parallel before executing the next step.
 
+We implemented the dependency graph using an adjacency matrix. Cell (i,j) is 1 if command i is dependent on command j's completion. We only worry 
+about cells where j is less than i, since a command cannot depend on a command after it. Figuring out whether or not a command depends on another 
+command was simply testing for the three cases of WAW, RAW, and WAR (write after write, read after write, write after read). We used an inefficient 
+algorithm of looping through each command to match all the previous commands, which is O(n^2). Using a hash table would've reduced the running time 
+to O(n), but implementing a hash table in C may lead to many errors.
+
+The implementation of the topological sort was using an ingoing array. We first counted the total number of dependencies for each command, 
+and picked the ones with zero dependencies. All the commands picked would be executed in parallel. Then we remove these commands and repeat 
+the process to find the commands to execute in parallel for the next step.
+
 This part of the lab was more straighforward than the first part A.
 --------

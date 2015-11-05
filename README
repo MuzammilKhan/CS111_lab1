@@ -60,3 +60,13 @@ Generally, this part of the lab was quite a bit simpler than the first part of t
 cases.
 
 --------
+
+PART C
+
+Once again this part of the lab was simpler than we thought it would be. We had to execute the commands in parallel. We modified execute-command.c,
+main.c, and created two new test files testDependencyGraph.sh and testParallel.sh. We created a dependency graph and another graph to help keep track
+of what elements we have already visited. We then used topological sort to break up the commands in the forest into steps. We then executed each step 
+in parallel before executing the next step.
+
+This part of the lab was more straighforward than the first part A.
+--------

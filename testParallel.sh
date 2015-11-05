@@ -18,15 +18,27 @@ bull
 ant
 EOF
 
+cat >words2.txt << 'EOF'
+sky
+air
+land
+sea
+EOF
+
+
 cat >testtemp.sh <<'EOF'
 
-cat < words.txt
-
-echo hello
-
-echo hello > words.txt
-
 cat words.txt
+
+cat words2.txt
+
+cat words.txt > words2.txt
+
+ls words.txt
+
+cat words2.txt
+
+echo hello3
 
 EOF
 

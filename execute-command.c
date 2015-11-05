@@ -258,37 +258,27 @@ execute_command_time_travel (command_stream_t command_stream) {
   //DOESNT WORK
   //EXECUTE THE COMMANDS IN EACH STEP IN PARALLEL
 
-  for (i = 0; i < sortedStep; i++) 
-  {
-    for (j = 1; j < sortedOrder[i][0]+1; j++) 
-    {
+  pid_t* processesToWait = (pid_t*) checked_malloc (num_commands * sizeof(pid_t));
+
+  for (i = 0; i < sortedStep; i++) {
+    for (j = 1; j < sortedOrder[i][0]+1; j++) {
       pid_t pid;
-      if (!(pid=fork())) 
-      {
-       fprintf(stderr, "Executing:  %i\n", j);
-	     command_t cmd = parse(command_stream->forest[sortedOrder[i][j]]);
-       fprintf(stderr, "Executing pt2: %i\n", j);
-	     execute_command(cmd, 1);
-       fprintf(stderr, "Executing pt3: %i\n", j);
-	     exit(0);
+      if (!(pid=fork())) {
+          command_t cmd = parse(command_stream->forest[sortedOrder[i][j]]);
+          execute_command(cmd, 1);
+          exit(0);
       }
-	     //do nothing and keep looping and forking children
+      else {
+        processesToWait[j] = pid;
+        //keep looping and forking children                                                                                                                                                 
+      }
     }
-   
-    /*for (j = 1; j < sortedOrder[i][0]+1; j++) 
-    {
+    for (j = 1; j < sortedOrder[i][0]+1; j++) {
       int status;
-      fprintf(stderr, "Waiting for %i\n", j);
-      waitpid(-1, &status, 0);
+      waitpid(processesToWait[j], &status, 0);
       fprintf(stderr, "Waited for %i\n", j);
-    }*/
-
-      int status;
-      while(waitpid(-1, &status, 0))
-      {}
-      fprintf(stderr, "Done waiting for all children\n");
+    }
   }
-
 
   return; //should return status of last command, something like what was done in the comment below
 

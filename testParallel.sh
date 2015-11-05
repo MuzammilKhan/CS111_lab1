@@ -40,7 +40,9 @@ cat words2.txt
 
 echo hello3
 
-echo "quotation test" > quote.txt
+touch quote.txt
+
+echo quotation test > quote.txt
 
 cat quote.txt
 

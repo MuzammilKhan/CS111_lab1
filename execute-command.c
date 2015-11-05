@@ -272,18 +272,21 @@ execute_command_time_travel (command_stream_t command_stream) {
        fprintf(stderr, "Executing pt3: %i\n", j);
 	     exit(0);
       }
-     
 	     //do nothing and keep looping and forking children
-      
     }
    
-    for (j = 1; j < sortedOrder[i][0]+1; j++) 
+    /*for (j = 1; j < sortedOrder[i][0]+1; j++) 
     {
       int status;
       fprintf(stderr, "Waiting for %i\n", j);
       waitpid(-1, &status, 0);
       fprintf(stderr, "Waited for %i\n", j);
-    }
+    }*/
+
+      int status;
+      while(waitpid(-1, &status, 0))
+      {}
+      fprintf(stderr, "Done waiting for all children\n");
   }
 
 

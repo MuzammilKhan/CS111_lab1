@@ -1,0 +1,4 @@
+sky
+air
+land
+sea

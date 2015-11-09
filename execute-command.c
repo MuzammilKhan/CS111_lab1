@@ -32,7 +32,7 @@ void update_subprocess_limit(int limit)
 void
 increment_subprocess_count()
 {
-  if(subproces_limit > 0)
+  if(subprocess_limit > 0)
     {
       while(subprocess_count >= subprocess_limit) //busy loop till conditions are met
 	{;}
@@ -46,7 +46,7 @@ increment_subprocess_count()
 void
 decrement_subprocess_count()
 {
-  if(subproces_limit > 0)
+  if(subprocess_limit > 0)
     {
       pthread_mutex_lock(&mutex);
       subprocess_count--;

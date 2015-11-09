@@ -20,13 +20,42 @@
 //Lock function, creation of mutex 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 int subprocess_limit = 0;
+int subprocess_count = 0;
 
-//function to update subprocess_limit from main
+//function for design lab
 void update_subprocess_limit(int limit)
 {
   subprocess_limit = limit;
   return;
 }
+
+void
+increment_subprocess_count()
+{
+  if(subproces_limit > 0)
+    {
+      while(subprocess_count >= subprocess_limit)
+	{}
+      pthread_mutex_lock(&mutex);
+      subprocess_count++;
+      pthread_mutex_unlock(&mutex);
+    }
+  return;
+}
+
+void
+decrement_subprocess_count()
+{
+  if(subproces_limit > 0)
+    {
+      pthread_mutex_lock(&mutex);
+      subprocess_count--;
+      pthread_mutex_unlock(&mutex);
+    }
+  return;
+}
+
+//end design lab functions
 
 int max(int a, int b) {
   if (a>b)

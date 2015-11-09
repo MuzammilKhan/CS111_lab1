@@ -8,7 +8,7 @@ mkdir "$tmp" || exit
 (
 cd "$tmp" || exit
 
-cat >words.txt <<'EOF'
+cat >words.txt <<EOF
 monkey
 cat
 dog
@@ -18,7 +18,7 @@ bull
 ant
 EOF
 
-cat >words2.txt << 'EOF'
+cat >words2.txt <<EOF
 sky
 air
 land
@@ -26,7 +26,7 @@ sea
 EOF
 
 
-cat >testtemp.sh <<'EOF'
+cat >testtemp.sh <<EOF
 
 cat words.txt
 
@@ -50,7 +50,7 @@ EOF
 
 
 
-../timetrash -t testtemp.sh  || exit
+../timetrash -t testtemp.sh 5 || exit
 
 ) || exit
 

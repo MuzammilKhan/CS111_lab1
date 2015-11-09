@@ -22,6 +22,18 @@ get_next_byte (void *stream)
   return getc (stream);
 }
 
+int parse_ssize(const char *arg, ssize_t *result)
+{
+  char *end_arg;
+  ssize_t val = strtol(arg, &end_arg, 0);
+  if (*arg && !*end_arg) {
+    *result = val;
+    return 1;
+  } else
+    return 0;
+}
+
+
 int
 main (int argc, char **argv)
 {
@@ -29,6 +41,8 @@ main (int argc, char **argv)
   int command_number = 1;
   int print_tree = 0;
   int time_travel = 0;
+  int limit_processes = false;
+  int num_processes = -1;
   program_name = argv[0];
 
   for (;;)
@@ -41,11 +55,19 @@ main (int argc, char **argv)
       }
  options_exhausted:;
 
-  // There must be exactly one file argument.
-  if (optind != argc - 1)
+  // There must be exactly one or two file argument.
+
+  if (optind != argc - 1 && optind != argc - 2)
     usage ();
 
   script_name = argv[optind];
+
+  //there are two arguments
+  if (optind == argc - 2) {
+    limit_processes = true;
+    parse_ssize(argv[optind+1], &num_processes);
+  }
+
   FILE *script_stream = fopen (script_name, "r");
   if (! script_stream)
     error (1, errno, "%s: cannot open", script_name);
@@ -55,10 +77,15 @@ main (int argc, char **argv)
   command_t last_command = NULL;
   command_t command;
 
+
   //If time travel option is set make dependency graph
   int** graph; 
   if(time_travel)
   {
+    if (limit_processes)
+      update_subprocess_limit(num_processes);
+    else
+      update_subprocess_limit(-1);
     execute_command_time_travel(command_stream);
     return 1;
   }

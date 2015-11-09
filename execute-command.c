@@ -15,6 +15,18 @@
 #include <stdio.h> // debugging
 #include <string.h> //strcmp
 #include <fcntl.h>
+#include <pthread.h> //for locking
+
+//Lock function, creation of mutex 
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+int subprocess_limit = 0;
+
+//function to update subprocess_limit from main
+void update_subprocess_limit(int limit)
+{
+  subprocess_limit = limit;
+  return;
+}
 
 int max(int a, int b) {
   if (a>b)

@@ -34,8 +34,8 @@ increment_subprocess_count()
 {
   if(subproces_limit > 0)
     {
-      while(subprocess_count >= subprocess_limit)
-	{}
+      while(subprocess_count >= subprocess_limit) //busy loop till conditions are met
+	{;}
       pthread_mutex_lock(&mutex);
       subprocess_count++;
       pthread_mutex_unlock(&mutex);

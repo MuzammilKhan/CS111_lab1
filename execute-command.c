@@ -19,10 +19,10 @@
 
 //Lock function, creation of mutex 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-size_t subprocess_limit = 0;
+int subprocess_limit = 0;
 
 //function to update subprocess_limit from main
-void update_subprocess_limit(size_t limit)
+void update_subprocess_limit(int limit)
 {
   subprocess_limit = limit;
   return;

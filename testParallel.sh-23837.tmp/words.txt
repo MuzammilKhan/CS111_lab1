@@ -1,7 +1,0 @@
-monkey
-cat
-dog
-bird
-chicken
-bull
-ant

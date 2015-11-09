@@ -70,6 +70,18 @@ main (int argc, char **argv)
     parse_ssize(argv[optind+1], &num_processes);
   }
 
+  if (limit_processes && num_processes > 0) {
+    printf("Running with %i processes\n", num_processes);
+    update_subprocess_limit(num_processes);
+  }
+  else if (limit_processes && num_processes == 0) {
+    error (1, errno, "Cannot run with 0 processes");
+  }
+  else {
+    printf("Running with unlimited processes\n");
+    update_subprocess_limit(-1);
+  }
+
   FILE *script_stream = fopen (script_name, "r");
   if (! script_stream)
     error (1, errno, "%s: cannot open", script_name);
@@ -84,10 +96,6 @@ main (int argc, char **argv)
   int** graph; 
   if(time_travel)
   {
-    if (limit_processes)
-      update_subprocess_limit(num_processes);
-    else
-      update_subprocess_limit(-1);
     execute_command_time_travel(command_stream);
     return 1;
   }

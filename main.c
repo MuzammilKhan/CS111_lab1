@@ -4,6 +4,8 @@
 #include <error.h>
 #include <getopt.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
 
 #include "command.h"
 
@@ -22,7 +24,7 @@ get_next_byte (void *stream)
   return getc (stream);
 }
 
-int parse_ssize(const char *arg, ssize_t *result)
+int parse_ssize(const char *arg, int *result)
 {
   char *end_arg;
   ssize_t val = strtol(arg, &end_arg, 0);

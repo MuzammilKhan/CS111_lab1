@@ -29,9 +29,28 @@ void update_subprocess_limit(int limit)
   return;
 }
 
+int count_processes_needed(command_t c) {
+  switch(c->type) {
+  case SIMPLE_COMMAND: {
+    return 1;
+  }
+    break;
+  case SUBSHELL_COMMAND: {
+    return 1+count_processes_needed(c->u.subshell_command);
+  }
+    break;
+  default: {
+    return 1+count_processes_needed(c->u.command[0]) + count_processes_needed(c->u.command[1]);
+  }
+  }
+}
+
 void
-increment_subprocess_count(int num_processes_needed = 1)
+increment_subprocess_count(int num_processes_needed)
 {
+  if (num_processes_needed >= subprocess_limit) {
+    error(1, 0, "cannot execute command, need a larger subproccess limit");
+  }
   fprintf(stderr, "num subprocesses: %i\n", subprocess_count);
   if(subprocess_limit > 0)
     {
@@ -312,6 +331,7 @@ execute_command_time_travel (command_stream_t command_stream) {
       pid_t pid;
       if (!(pid=fork())) {
           command_t cmd = parse(command_stream->forest[sortedOrder[i][j]]);
+	  increment_subprocess_count(count_processes_needed(cmd));
           execute_command(cmd, 1);
           exit(0);
       }
@@ -391,7 +411,7 @@ execute_command (command_t c, int time_travel)
   case SUBSHELL_COMMAND: {
     pid_t pid;
     int status;
-    increment_subprocess_count();
+
     if ( !(pid=fork())) {
       execute_command(c->u.subshell_command, time_travel);
       exit(c->u.subshell_command->status);
@@ -405,14 +425,14 @@ execute_command (command_t c, int time_travel)
   }
   case SEQUENCE_COMMAND: {
     int left = 0, right = 0, status;
-    increment_subprocess_count();
+
     if (!(left = fork())) {
       execute_command(c->u.command[0], time_travel);
       exit(c->u.command[0]->status);
     }
     else {
       waitpid(left, &status, 0);
-      increment_subprocess_count();
+
       if (!(right = fork())) {
 	       execute_command(c->u.command[1], time_travel);
 	       exit(c->u.command[1]->status);
@@ -431,7 +451,7 @@ execute_command (command_t c, int time_travel)
       fprintf(stderr, "Pipe failed\n");
     }
     //fprintf(stderr, "finished pipe syscall\n");
-    increment_subprocess_count();
+
     if(!(left = fork()))
     {
       close(pipefd[0]);
@@ -445,7 +465,7 @@ execute_command (command_t c, int time_travel)
     else
     {
       int status = 0;
-      increment_subprocess_count();
+
       if(!(right = fork()))
       {
         close(pipefd[1]);
@@ -486,7 +506,7 @@ execute_command (command_t c, int time_travel)
   case AND_COMMAND: {
     //fprintf(stderr,"ANDCOMMAND\n");
     int left = 0, right = 0, status;
-    increment_subprocess_count();
+
     if(!(left = fork()))
     {
       execute_command(c->u.command[0], time_travel);  //TODO: flag part?
@@ -498,7 +518,7 @@ execute_command (command_t c, int time_travel)
       //fprintf(stderr,"status is: %i\n", status);
       if(!status) //if exit status is 0
       {
-	increment_subprocess_count();
+
        if(!(right = fork()))
         {
           execute_command(c->u.command[1], time_travel);
@@ -515,7 +535,7 @@ execute_command (command_t c, int time_travel)
   case OR_COMMAND: {
     //fprintf(stderr, "ORCOMMAND\n");
     int left = 0, right = 0, status;
-    increment_subprocess_count();
+
     if(!(left = fork()))
     {
       execute_command(c->u.command[0], time_travel);  //TODO: flag part?
@@ -527,7 +547,7 @@ execute_command (command_t c, int time_travel)
       //fprintf(stderr, "status is: %i\n", status);
       if(status) //if exit status is not 0
       {
-	increment_subprocess_count();
+
        if(!(right = fork()))
         {
           execute_command(c->u.command[1], time_travel);
@@ -549,19 +569,3 @@ execute_command (command_t c, int time_travel)
 
 }
 
-
-int count_processes_needed(command_t c) {
-  switch(c->type) {
-  case SIMPLE_COMMAND: {
-    return 1;
-  }
-    break;
-  case SUBSHELL_COMMAND: {
-    return 1+count_processes_needed(c->u.subshell_command);
-  }
-    break;
-  default: {
-    return 1+count_processes_needed(c->u.command[0]) + count_processes_needed(c->u.command[1]);
-  }
-  }
-}

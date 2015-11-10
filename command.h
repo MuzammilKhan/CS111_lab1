@@ -44,5 +44,7 @@ int command_status (command_t);
 /* design project - update max number of subprocesses */
 void update_subprocess_limit(int limit);
 
-void increment_subprocess_count();
+void increment_subprocess_count(int num_processes_needed);
 void decrement_subprocess_count();
+
+int count_processes_needed(command_t c);

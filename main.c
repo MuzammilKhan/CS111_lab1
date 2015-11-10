@@ -111,7 +111,7 @@ main (int argc, char **argv)
 	else
 	  {
 	    last_command = command;
-	    increment_subprocess_count();
+	    increment_subprocess_count(count_processes_needed(command));
 	    execute_command (command, time_travel);
 	  }
       }

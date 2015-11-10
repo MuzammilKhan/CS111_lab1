@@ -50,7 +50,7 @@ EOF
 
 
 
-../timetrash -t testtemp.sh 5 || exit
+../timetrash testtemp.sh 2 || exit
 
 ) || exit
 

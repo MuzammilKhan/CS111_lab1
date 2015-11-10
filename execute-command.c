@@ -60,10 +60,16 @@ increment_subprocess_count(int num_processes_needed)
   //  fprintf(stderr, "number of subprocesses before increment: %i\n", *subprocess_count);
   if(*subprocess_limit > 0)
     {
-      while(*subprocess_count + num_processes_needed > *subprocess_limit) //busy loop till conditions are met
-	{
-    ;
-  }
+     // while(*subprocess_count + num_processes_needed > *subprocess_limit) //busy loop till conditions are met
+	   //{;}
+      loop:
+      pthread_mutex_trylock(&mutex);
+      if(*subprocess_count + num_processes_needed > *subprocess_limit)
+      {
+        pthread_mutex_unlock(&mutex);
+        goto loop;
+      }
+
       pthread_mutex_lock(&mutex);
       *subprocess_count += num_processes_needed;
       fprintf(stderr, "number of subprocesses after increment: %i\n", *subprocess_count);

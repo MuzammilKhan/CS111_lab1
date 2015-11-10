@@ -112,12 +112,12 @@ main (int argc, char **argv)
 	else
 	  {
 	    last_command = command;
-      processes_needed_count = count_processes_needed(command);
- 	    increment_subprocess_count(processes_needed_count);
-	    fprintf(stderr, "command tree acquires %i process locks\n", processes_needed_count);
+      //processes_needed_count = count_processes_needed(command);
+ 	    increment_subprocess_count(1);
+	    //fprintf(stderr, "command tree acquires %i process locks\n", processes_needed_count);
 	    execute_command (command, time_travel);
-      decrement_subprocess_count(processes_needed_count);
-      fprintf(stderr, "command tree releases %i process locks\n", processes_needed_count);
+      decrement_subprocess_count(1);
+      //fprintf(stderr, "command tree releases %i process locks\n", processes_needed_count);
 	  }
       }
     

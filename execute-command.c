@@ -60,14 +60,7 @@ increment_subprocess_count(int num_processes_needed)
   //  fprintf(stderr, "number of subprocesses before increment: %i\n", *subprocess_count);
   if(*subprocess_limit > 0)
     {
-     // while(*subprocess_count + num_processes_needed > *subprocess_limit) //busy loop till conditions are met
-	   //{;}
-      //LOOP: pthread_mutex_trylock(&mutex);
-      if(*subprocess_count + num_processes_needed > *subprocess_limit)
-      {
-        pthread_mutex_unlock(&mutex);
-        //goto LOOP;
-      }
+     while(*subprocess_count + num_processes_needed > *subprocess_limit); //busy loop till conditions are met
 
       pthread_mutex_lock(&mutex);
       *subprocess_count += num_processes_needed;
@@ -349,12 +342,14 @@ execute_command_time_travel (command_stream_t command_stream) {
       //increment_subprocess_count(processes_needed_count+1);
       fprintf(stderr, "command tree %i acquires %i process locks\n",sortedOrder[i][j] ,processes_needed_count);
       if (!(pid=fork())) {
+          increment_subprocess_count(1);
           execute_command(cmd, 1);
         //  fprintf(stderr, "command tree %i releases %i process locks\n",sortedOrder[i][j] ,processes_needed_count+1);
         //  decrement_subprocess_count(processes_needed_count+1);
           exit(0);
       }
       else {
+        decrement_subprocess_count(1);
         processesToWait[j] = pid;
         //keep looping and forking children                                                                                                                                                 
       }
@@ -526,7 +521,6 @@ execute_command (command_t c, int time_travel)
   case AND_COMMAND: {
     //fprintf(stderr,"ANDCOMMAND\n");
     int left = 0, right = 0, status;
-    increment_subprocess_count(1);
     if(!(left = fork()))
     {
       execute_command(c->u.command[0], time_travel);  //TODO: flag part?
@@ -535,11 +529,10 @@ execute_command (command_t c, int time_travel)
     else
     {
       waitpid(left, &status, 0);
-      decrement_subprocess_count(1);
       //fprintf(stderr,"status is: %i\n", status);
       if(!status) //if exit status is 0
       {
-       increment_subprocess_count(1);
+
        if(!(right = fork()))
         {
           execute_command(c->u.command[1], time_travel);
@@ -547,7 +540,7 @@ execute_command (command_t c, int time_travel)
         }
        else {
 	 waitpid(right, &status, 0);
-   decrement_subprocess_count(1);
+
 	 c->status = WEXITSTATUS(status);
        }
       }

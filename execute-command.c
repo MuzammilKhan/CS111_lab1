@@ -331,16 +331,20 @@ execute_command_time_travel (command_stream_t command_stream) {
     //EXECUTE THE COMMANDS IN EACH STEP IN PARALLEL
 
   pid_t* processesToWait = (pid_t*) checked_malloc (num_commands * sizeof(pid_t));
+  int processes_needed_count = 0;
 
   for (i = 0; i < sortedStep; i++) {
     for (j = 1; j < sortedOrder[i][0]+1; j++) {
       pid_t pid;
       command_t cmd = parse(command_stream->forest[sortedOrder[i][j]]);
-      fprintf(stderr,"num processes needed for this command: %i\n", count_processes_needed(cmd));
-      increment_subprocess_count(count_processes_needed(cmd)+1);
+      processes_needed_count = count_processes_needed(cmd);
+      fprintf(stderr,"num processes needed for this command: %i\n", processes_needed_count);
+      increment_subprocess_count(processes_needed_count+1);
+      fprintf(stderr, "command tree %i acquires %i process locks\n",sortedOrder[i][j] ,processes_needed_count+1);
       if (!(pid=fork())) {
           execute_command(cmd, 1);
-          decrement_subprocess_count(count_processes_needed(cmd)+1);
+          decrement_subprocess_count(processes_needed_count+1);
+          fprintf(stderr, "command tree %i releases %i process locks\n",sortedOrder[i][j] ,processes_needed_count+1);
           exit(0);
       }
       else {

@@ -101,6 +101,7 @@ main (int argc, char **argv)
   }
   else
   {
+    int processes_needed_count = 0; 
     while ((command = read_command_stream (command_stream)))
       {
 	if (print_tree)
@@ -111,9 +112,12 @@ main (int argc, char **argv)
 	else
 	  {
 	    last_command = command;
-	    increment_subprocess_count(count_processes_needed(command));
+      processes_needed_count = count_processes_needed(command);
+      fprintf(stderr, "command tree acquires %i process locks\n", processes_needed_count);
+	    increment_subprocess_count(processes_needed_count);
 	    execute_command (command, time_travel);
-            decrement_subprocess_count(count_processes_needed(command));
+      decrement_subprocess_count(processes_needed_count);
+      fprintf(stderr, "command tree releases %i process locks\n", processes_needed_count);
 	  }
       }
     

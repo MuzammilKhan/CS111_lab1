@@ -344,12 +344,13 @@ execute_command_time_travel (command_stream_t command_stream) {
       if (!(pid=fork())) {
           increment_subprocess_count(1);
           execute_command(cmd, 1);
+          decrement_subprocess_count(1);
         //  fprintf(stderr, "command tree %i releases %i process locks\n",sortedOrder[i][j] ,processes_needed_count+1);
         //  decrement_subprocess_count(processes_needed_count+1);
           exit(0);
       }
       else {
-        decrement_subprocess_count(1);
+
         processesToWait[j] = pid;
         //keep looping and forking children                                                                                                                                                 
       }

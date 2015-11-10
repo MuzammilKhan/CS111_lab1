@@ -77,8 +77,8 @@ decrement_subprocess_count(int num_processes)
   if(*subprocess_limit > 0)
     {
       pthread_mutex_lock(&mutex);
-      fprintf(stderr, "number of subprocesses after decrement: %i\n", *subprocess_count - num_processes);
       *subprocess_count -= num_processes;
+      fprintf(stderr, "number of subprocesses after decrement: %i\n", *subprocess_count);
       pthread_mutex_unlock(&mutex);
     }
   return;
@@ -340,7 +340,7 @@ execute_command_time_travel (command_stream_t command_stream) {
       processes_needed_count = count_processes_needed(cmd);
       //fprintf(stderr,"num processes needed for command tree %i: %i\n", sortedOrder[i][j] , processes_needed_count+1);
       //increment_subprocess_count(processes_needed_count+1);
-      fprintf(stderr, "command tree %i acquires %i process locks\n",sortedOrder[i][j] ,processes_needed_count+1);
+      fprintf(stderr, "command tree %i acquires %i process locks\n",sortedOrder[i][j] ,processes_needed_count);
       if (!(pid=fork())) {
           execute_command(cmd, 1);
         //  fprintf(stderr, "command tree %i releases %i process locks\n",sortedOrder[i][j] ,processes_needed_count+1);

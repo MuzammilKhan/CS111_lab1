@@ -51,7 +51,7 @@ increment_subprocess_count(int num_processes_needed)
   if (num_processes_needed >= subprocess_limit) {
     error(1, 0, "cannot execute command, need a larger subproccess limit");
   }
-  fprintf(stderr, "num subprocesses: %i\n", subprocess_count);
+  fprintf(stderr, "inum subprocesses: %i\n", subprocess_count);
   if(subprocess_limit > 0)
     {
       while(subprocess_count + num_processes_needed > subprocess_limit) //busy loop till conditions are met
@@ -60,21 +60,21 @@ increment_subprocess_count(int num_processes_needed)
       subprocess_count += num_processes_needed;
       pthread_mutex_unlock(&mutex);
     }
-  fprintf(stderr, "num subprocesses: %i\n", subprocess_count);
+  fprintf(stderr, "inum subprocesses: %i\n", subprocess_count);
   return;
 }
 
 void
 decrement_subprocess_count()
 {
-  fprintf(stderr, "num subprocesses: %i\n", subprocess_count);
+  fprintf(stderr, "dnum subprocesses: %i\n", subprocess_count);
   if(subprocess_limit > 0)
     {
       pthread_mutex_lock(&mutex);
       subprocess_count--;
       pthread_mutex_unlock(&mutex);
     }
-  fprintf(stderr, "num subprocesses: %i\n", subprocess_count);
+  fprintf(stderr, "dnum subprocesses: %i\n", subprocess_count);
   return;
 }
 
@@ -329,10 +329,12 @@ execute_command_time_travel (command_stream_t command_stream) {
   for (i = 0; i < sortedStep; i++) {
     for (j = 1; j < sortedOrder[i][0]+1; j++) {
       pid_t pid;
+      command_t cmd = parse(command_stream->forest[sortedOrder[i][j]]);
+      fprintf(stderr,"num processes needed for this command: %i\n", count_processes_needed(cmd));
+      increment_subprocess_count(count_processes_needed(cmd)+1);
       if (!(pid=fork())) {
-          command_t cmd = parse(command_stream->forest[sortedOrder[i][j]]);
-	  increment_subprocess_count(count_processes_needed(cmd));
           execute_command(cmd, 1);
+	  decrement_subprocess_count();
           exit(0);
       }
       else {

@@ -28,7 +28,7 @@ EOF
 
 cat >testtemp.sh <<EOF
 
-cat words.txt
+cat words.txt && cat words.txt
 
 cat words2.txt
 
@@ -50,7 +50,7 @@ EOF
 
 
 
-../timetrash testtemp.sh 2 || exit
+../timetrash -t testtemp.sh 12 || exit
 
 ) || exit
 

@@ -17,15 +17,21 @@
 #include <fcntl.h>
 #include <pthread.h> //for locking
 
+#include <sys/mman.h>
+
 //Lock function, creation of mutex 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-int subprocess_limit = 0;
-int subprocess_count = 1;
+static int* subprocess_limit;
+static int* subprocess_count;
 
 //function for design lab
 void update_subprocess_limit(int limit)
 {
-  subprocess_limit = limit;
+  subprocess_limit = mmap(NULL, sizeof *subprocess_limit, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+  subprocess_count = mmap(NULL, sizeof *subprocess_count, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+
+  *subprocess_limit = limit;
+  *subprocess_count = 1;
   return;
 }
 
@@ -48,33 +54,33 @@ int count_processes_needed(command_t c) {
 void
 increment_subprocess_count(int num_processes_needed)
 {
-  if (num_processes_needed >= subprocess_limit) {
+  if (num_processes_needed >= *subprocess_limit) {
     error(1, 0, "cannot execute command, need a larger subproccess limit");
   }
-  fprintf(stderr, "inum subprocesses: %i\n", subprocess_count);
-  if(subprocess_limit > 0)
+  fprintf(stderr, "inum subprocesses: %i\n", *subprocess_count);
+  if(*subprocess_limit > 0)
     {
-      while(subprocess_count + num_processes_needed > subprocess_limit) //busy loop till conditions are met
+      while(*subprocess_count + num_processes_needed > *subprocess_limit) //busy loop till conditions are met
 	{;}
       pthread_mutex_lock(&mutex);
-      subprocess_count += num_processes_needed;
+      *subprocess_count += num_processes_needed;
       pthread_mutex_unlock(&mutex);
     }
-  fprintf(stderr, "inum subprocesses: %i\n", subprocess_count);
+  fprintf(stderr, "inum subprocesses: %i\n", *subprocess_count);
   return;
 }
 
 void
-decrement_subprocess_count()
+decrement_subprocess_count(int num_processes)
 {
-  fprintf(stderr, "dnum subprocesses: %i\n", subprocess_count);
-  if(subprocess_limit > 0)
+  fprintf(stderr, "dnum subprocesses: %i\n", *subprocess_count);
+  if(*subprocess_limit > 0)
     {
       pthread_mutex_lock(&mutex);
-      subprocess_count--;
+      *subprocess_count -= num_processes;
       pthread_mutex_unlock(&mutex);
     }
-  fprintf(stderr, "dnum subprocesses: %i\n", subprocess_count);
+  fprintf(stderr, "dnum subprocesses: %i\n", *subprocess_count);
   return;
 }
 
@@ -334,7 +340,7 @@ execute_command_time_travel (command_stream_t command_stream) {
       increment_subprocess_count(count_processes_needed(cmd)+1);
       if (!(pid=fork())) {
           execute_command(cmd, 1);
-	  decrement_subprocess_count();
+          decrement_subprocess_count(count_processes_needed(cmd)+1);
           exit(0);
       }
       else {
@@ -405,7 +411,6 @@ execute_command (command_t c, int time_travel)
     else {
       waitpid(pid, &status, 0);
       //fprintf(stderr, "finished waiting\n");
-      decrement_subprocess_count();
       c->status = WEXITSTATUS(status);
     }
     break;
@@ -416,7 +421,6 @@ execute_command (command_t c, int time_travel)
 
     if ( !(pid=fork())) {
       execute_command(c->u.subshell_command, time_travel);
-      decrement_subprocess_count();
       exit(c->u.subshell_command->status);
     }
     else {
@@ -431,7 +435,6 @@ execute_command (command_t c, int time_travel)
 
     if (!(left = fork())) {
       execute_command(c->u.command[0], time_travel);
-      decrement_subprocess_count();
       exit(c->u.command[0]->status);
     }
     else {
@@ -439,7 +442,6 @@ execute_command (command_t c, int time_travel)
 
       if (!(right = fork())) {
 	       execute_command(c->u.command[1], time_travel);
-	       decrement_subprocess_count();
 	       exit(c->u.command[1]->status);
       }
       else {
@@ -465,7 +467,6 @@ execute_command (command_t c, int time_travel)
       //fprintf(stderr, "entering left command\n");
       execute_command(c->u.command[0], time_travel);  //TODO: flag part?
       //fprintf(stderr, "executed left command\n");
-      decrement_subprocess_count();
       exit(c->u.command[0]->status);
     }
     else
@@ -480,7 +481,6 @@ execute_command (command_t c, int time_travel)
         //fprintf(stderr, "entering right command\n");
         execute_command(c->u.command[1], time_travel);
         //fprintf(stderr, "executed right command\n");
-	decrement_subprocess_count();
 	      exit(c->u.command[1]->status);
       }
       else
@@ -516,7 +516,6 @@ execute_command (command_t c, int time_travel)
 
     if(!(left = fork()))
     {
-      decrement_subprocess_count();
       execute_command(c->u.command[0], time_travel);  //TODO: flag part?
       exit(c->u.command[0]->status);
     }
@@ -529,7 +528,6 @@ execute_command (command_t c, int time_travel)
 
        if(!(right = fork()))
         {
-	  decrement_subprocess_count();
           execute_command(c->u.command[1], time_travel);
           exit(c->u.command[1]->status);
         }
@@ -548,7 +546,6 @@ execute_command (command_t c, int time_travel)
     if(!(left = fork()))
     {
       execute_command(c->u.command[0], time_travel);  //TODO: flag part?
-      decrement_subprocess_count();
       exit(c->u.command[0]->status);
     }
     else
@@ -561,7 +558,6 @@ execute_command (command_t c, int time_travel)
        if(!(right = fork()))
         {
           execute_command(c->u.command[1], time_travel);
-	  decrement_subprocess_count();
           exit(c->u.command[1]->status);
         }
        else {

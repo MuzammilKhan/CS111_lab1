@@ -30,15 +30,15 @@ void update_subprocess_limit(int limit)
 }
 
 void
-increment_subprocess_count()
+increment_subprocess_count(int num_processes_needed = 1)
 {
   fprintf(stderr, "num subprocesses: %i\n", subprocess_count);
   if(subprocess_limit > 0)
     {
-      while(subprocess_count >= subprocess_limit) //busy loop till conditions are met
+      while(subprocess_count + num_processes_needed > subprocess_limit) //busy loop till conditions are met
 	{;}
       pthread_mutex_lock(&mutex);
-      subprocess_count++;
+      subprocess_count += num_processes_needed;
       pthread_mutex_unlock(&mutex);
     }
   fprintf(stderr, "num subprocesses: %i\n", subprocess_count);
@@ -547,4 +547,21 @@ execute_command (command_t c, int time_travel)
 
   return;
 
+}
+
+
+int count_processes_needed(command_t c) {
+  switch(c->type) {
+  case SIMPLE_COMMAND: {
+    return 1;
+  }
+    break;
+  case SUBSHELL_COMMAND: {
+    return 1+count_processes_needed(c->u.subshell_command);
+  }
+    break;
+  default: {
+    return 1+count_processes_needed(c->u.command[0]) + count_processes_needed(c->u.command[1]);
+  }
+  }
 }

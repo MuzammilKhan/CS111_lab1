@@ -31,7 +31,7 @@ void update_subprocess_limit(int limit)
   subprocess_count = mmap(NULL, sizeof *subprocess_count, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
 
   *subprocess_limit = limit;
-  *subprocess_count = 1;
+  *subprocess_count = 0;
   return;
 }
 
@@ -54,33 +54,33 @@ int count_processes_needed(command_t c) {
 void
 increment_subprocess_count(int num_processes_needed)
 {
-  if (num_processes_needed >= *subprocess_limit) {
-    error(1, 0, "cannot execute command, need a larger subproccess limit");
+  if (num_processes_needed > *subprocess_limit) {
+    error(1, 0, "cannot execute command, need a subproccess limit of %i", num_processes_needed);
   }
-  fprintf(stderr, "number of subprocesses before increment: %i\n", *subprocess_count);
+  //  fprintf(stderr, "number of subprocesses before increment: %i\n", *subprocess_count);
   if(*subprocess_limit > 0)
     {
       while(*subprocess_count + num_processes_needed > *subprocess_limit) //busy loop till conditions are met
 	{;}
       pthread_mutex_lock(&mutex);
       *subprocess_count += num_processes_needed;
+      fprintf(stderr, "number of subprocesses after increment: %i\n", *subprocess_count);
       pthread_mutex_unlock(&mutex);
     }
-  fprintf(stderr, "number of subprocesses after increment: %i\n", *subprocess_count);
   return;
 }
 
 void
 decrement_subprocess_count(int num_processes)
 {
-  fprintf(stderr, "number of subprocesses before decrement: %i\n", *subprocess_count);
+  //  fprintf(stderr, "number of subprocesses before decrement: %i\n", *subprocess_count);
   if(*subprocess_limit > 0)
     {
       pthread_mutex_lock(&mutex);
+      fprintf(stderr, "number of subprocesses after decrement: %i\n", *subprocess_count - num_processes);
       *subprocess_count -= num_processes;
       pthread_mutex_unlock(&mutex);
     }
-  fprintf(stderr, "number of subprocesses after decrement: %i\n", *subprocess_count);
   return;
 }
 
@@ -338,13 +338,13 @@ execute_command_time_travel (command_stream_t command_stream) {
       pid_t pid;
       command_t cmd = parse(command_stream->forest[sortedOrder[i][j]]);
       processes_needed_count = count_processes_needed(cmd);
-      fprintf(stderr,"num processes needed for this command: %i\n", processes_needed_count);
+      fprintf(stderr,"num processes needed for command tree %i: %i\n", sortedOrder[i][j] , processes_needed_count+1);
       increment_subprocess_count(processes_needed_count+1);
       fprintf(stderr, "command tree %i acquires %i process locks\n",sortedOrder[i][j] ,processes_needed_count+1);
       if (!(pid=fork())) {
           execute_command(cmd, 1);
-          decrement_subprocess_count(processes_needed_count+1);
           fprintf(stderr, "command tree %i releases %i process locks\n",sortedOrder[i][j] ,processes_needed_count+1);
+          decrement_subprocess_count(processes_needed_count+1);
           exit(0);
       }
       else {

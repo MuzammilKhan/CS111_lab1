@@ -411,13 +411,13 @@ execute_command (command_t c, int time_travel)
             fprintf(stderr, "error in dup2 - output\n");
           }
       }
-      increment_subprocess_count(1);
+      
       execvp(c->u.word[0], c->u.word);
       fprintf(stderr, "execvp failure\n");
     } 
     else {
       waitpid(pid, &status, 0);
-      decrement_subprocess_count(1);
+ 
       //fprintf(stderr, "finished waiting\n");
       c->status = WEXITSTATUS(status);
     }
@@ -521,7 +521,7 @@ execute_command (command_t c, int time_travel)
   case AND_COMMAND: {
     //fprintf(stderr,"ANDCOMMAND\n");
     int left = 0, right = 0, status;
-
+    increment_subprocess_count(1);
     if(!(left = fork()))
     {
       execute_command(c->u.command[0], time_travel);  //TODO: flag part?
@@ -530,10 +530,11 @@ execute_command (command_t c, int time_travel)
     else
     {
       waitpid(left, &status, 0);
+      decrement_subprocess_count(1);
       //fprintf(stderr,"status is: %i\n", status);
       if(!status) //if exit status is 0
       {
-
+       increment_subprocess_count(1);
        if(!(right = fork()))
         {
           execute_command(c->u.command[1], time_travel);
@@ -541,6 +542,7 @@ execute_command (command_t c, int time_travel)
         }
        else {
 	 waitpid(right, &status, 0);
+   decrement_subprocess_count(1);
 	 c->status = WEXITSTATUS(status);
        }
       }

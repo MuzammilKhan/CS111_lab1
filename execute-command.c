@@ -338,13 +338,13 @@ execute_command_time_travel (command_stream_t command_stream) {
       pid_t pid;
       command_t cmd = parse(command_stream->forest[sortedOrder[i][j]]);
       processes_needed_count = count_processes_needed(cmd);
-      fprintf(stderr,"num processes needed for command tree %i: %i\n", sortedOrder[i][j] , processes_needed_count+1);
-      increment_subprocess_count(processes_needed_count+1);
+      //fprintf(stderr,"num processes needed for command tree %i: %i\n", sortedOrder[i][j] , processes_needed_count+1);
+      //increment_subprocess_count(processes_needed_count+1);
       fprintf(stderr, "command tree %i acquires %i process locks\n",sortedOrder[i][j] ,processes_needed_count+1);
       if (!(pid=fork())) {
           execute_command(cmd, 1);
-          fprintf(stderr, "command tree %i releases %i process locks\n",sortedOrder[i][j] ,processes_needed_count+1);
-          decrement_subprocess_count(processes_needed_count+1);
+        //  fprintf(stderr, "command tree %i releases %i process locks\n",sortedOrder[i][j] ,processes_needed_count+1);
+        //  decrement_subprocess_count(processes_needed_count+1);
           exit(0);
       }
       else {
@@ -409,11 +409,13 @@ execute_command (command_t c, int time_travel)
             fprintf(stderr, "error in dup2 - output\n");
           }
       }
+      increment_subprocess_count(1);
       execvp(c->u.word[0], c->u.word);
       fprintf(stderr, "execvp failure\n");
     } 
     else {
       waitpid(pid, &status, 0);
+      decrement_subprocess_count(1);
       //fprintf(stderr, "finished waiting\n");
       c->status = WEXITSTATUS(status);
     }

@@ -113,8 +113,8 @@ main (int argc, char **argv)
 	  {
 	    last_command = command;
       processes_needed_count = count_processes_needed(command);
-      fprintf(stderr, "command tree acquires %i process locks\n", processes_needed_count);
-	    increment_subprocess_count(processes_needed_count);
+ 	    increment_subprocess_count(processes_needed_count);
+	    fprintf(stderr, "command tree acquires %i process locks\n", processes_needed_count);
 	    execute_command (command, time_travel);
       decrement_subprocess_count(processes_needed_count);
       fprintf(stderr, "command tree releases %i process locks\n", processes_needed_count);

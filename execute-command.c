@@ -416,6 +416,7 @@ execute_command (command_t c, int time_travel)
 
     if ( !(pid=fork())) {
       execute_command(c->u.subshell_command, time_travel);
+      decrement_subprocess_count();
       exit(c->u.subshell_command->status);
     }
     else {
@@ -430,6 +431,7 @@ execute_command (command_t c, int time_travel)
 
     if (!(left = fork())) {
       execute_command(c->u.command[0], time_travel);
+      decrement_subprocess_count();
       exit(c->u.command[0]->status);
     }
     else {
@@ -437,6 +439,7 @@ execute_command (command_t c, int time_travel)
 
       if (!(right = fork())) {
 	       execute_command(c->u.command[1], time_travel);
+	       decrement_subprocess_count();
 	       exit(c->u.command[1]->status);
       }
       else {
@@ -462,6 +465,7 @@ execute_command (command_t c, int time_travel)
       //fprintf(stderr, "entering left command\n");
       execute_command(c->u.command[0], time_travel);  //TODO: flag part?
       //fprintf(stderr, "executed left command\n");
+      decrement_subprocess_count();
       exit(c->u.command[0]->status);
     }
     else
@@ -476,6 +480,7 @@ execute_command (command_t c, int time_travel)
         //fprintf(stderr, "entering right command\n");
         execute_command(c->u.command[1], time_travel);
         //fprintf(stderr, "executed right command\n");
+	decrement_subprocess_count();
 	      exit(c->u.command[1]->status);
       }
       else
@@ -511,6 +516,7 @@ execute_command (command_t c, int time_travel)
 
     if(!(left = fork()))
     {
+      decrement_subprocess_count();
       execute_command(c->u.command[0], time_travel);  //TODO: flag part?
       exit(c->u.command[0]->status);
     }
@@ -523,6 +529,7 @@ execute_command (command_t c, int time_travel)
 
        if(!(right = fork()))
         {
+	  decrement_subprocess_count();
           execute_command(c->u.command[1], time_travel);
           exit(c->u.command[1]->status);
         }
@@ -541,6 +548,7 @@ execute_command (command_t c, int time_travel)
     if(!(left = fork()))
     {
       execute_command(c->u.command[0], time_travel);  //TODO: flag part?
+      decrement_subprocess_count();
       exit(c->u.command[0]->status);
     }
     else
@@ -553,6 +561,7 @@ execute_command (command_t c, int time_travel)
        if(!(right = fork()))
         {
           execute_command(c->u.command[1], time_travel);
+	  decrement_subprocess_count();
           exit(c->u.command[1]->status);
         }
        else {

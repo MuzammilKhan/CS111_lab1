@@ -62,11 +62,11 @@ increment_subprocess_count(int num_processes_needed)
     {
      // while(*subprocess_count + num_processes_needed > *subprocess_limit) //busy loop till conditions are met
 	   //{;}
-      LOOP: pthread_mutex_trylock(&mutex);
+      //LOOP: pthread_mutex_trylock(&mutex);
       if(*subprocess_count + num_processes_needed > *subprocess_limit)
       {
         pthread_mutex_unlock(&mutex);
-        goto LOOP;
+        //goto LOOP;
       }
 
       pthread_mutex_lock(&mutex);

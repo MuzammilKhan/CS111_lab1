@@ -57,7 +57,7 @@ increment_subprocess_count(int num_processes_needed)
   if (num_processes_needed >= *subprocess_limit) {
     error(1, 0, "cannot execute command, need a larger subproccess limit");
   }
-  fprintf(stderr, "inum subprocesses: %i\n", *subprocess_count);
+  fprintf(stderr, "number of subprocesses before increment: %i\n", *subprocess_count);
   if(*subprocess_limit > 0)
     {
       while(*subprocess_count + num_processes_needed > *subprocess_limit) //busy loop till conditions are met
@@ -66,21 +66,21 @@ increment_subprocess_count(int num_processes_needed)
       *subprocess_count += num_processes_needed;
       pthread_mutex_unlock(&mutex);
     }
-  fprintf(stderr, "inum subprocesses: %i\n", *subprocess_count);
+  fprintf(stderr, "number of subprocesses after increment: %i\n", *subprocess_count);
   return;
 }
 
 void
 decrement_subprocess_count(int num_processes)
 {
-  fprintf(stderr, "dnum subprocesses: %i\n", *subprocess_count);
+  fprintf(stderr, "number of subprocesses before decrement: %i\n", *subprocess_count);
   if(*subprocess_limit > 0)
     {
       pthread_mutex_lock(&mutex);
       *subprocess_count -= num_processes;
       pthread_mutex_unlock(&mutex);
     }
-  fprintf(stderr, "dnum subprocesses: %i\n", *subprocess_count);
+  fprintf(stderr, "number of subprocesses after decrement: %i\n", *subprocess_count);
   return;
 }
 

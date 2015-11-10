@@ -20,7 +20,7 @@
 //Lock function, creation of mutex 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 int subprocess_limit = 0;
-int subprocess_count = 0;
+int subprocess_count = 1;
 
 //function for design lab
 void update_subprocess_limit(int limit)
@@ -32,6 +32,7 @@ void update_subprocess_limit(int limit)
 void
 increment_subprocess_count()
 {
+  fprintf(stderr, "num subprocesses: %i\n", subprocess_count);
   if(subprocess_limit > 0)
     {
       while(subprocess_count >= subprocess_limit) //busy loop till conditions are met
@@ -40,18 +41,21 @@ increment_subprocess_count()
       subprocess_count++;
       pthread_mutex_unlock(&mutex);
     }
+  fprintf(stderr, "num subprocesses: %i\n", subprocess_count);
   return;
 }
 
 void
 decrement_subprocess_count()
 {
+  fprintf(stderr, "num subprocesses: %i\n", subprocess_count);
   if(subprocess_limit > 0)
     {
       pthread_mutex_lock(&mutex);
       subprocess_count--;
       pthread_mutex_unlock(&mutex);
     }
+  fprintf(stderr, "num subprocesses: %i\n", subprocess_count);
   return;
 }
 
@@ -379,6 +383,7 @@ execute_command (command_t c, int time_travel)
     else {
       waitpid(pid, &status, 0);
       //fprintf(stderr, "finished waiting\n");
+      decrement_subprocess_count();
       c->status = WEXITSTATUS(status);
     }
     break;
@@ -386,6 +391,7 @@ execute_command (command_t c, int time_travel)
   case SUBSHELL_COMMAND: {
     pid_t pid;
     int status;
+    increment_subprocess_count();
     if ( !(pid=fork())) {
       execute_command(c->u.subshell_command, time_travel);
       exit(c->u.subshell_command->status);
@@ -399,12 +405,14 @@ execute_command (command_t c, int time_travel)
   }
   case SEQUENCE_COMMAND: {
     int left = 0, right = 0, status;
+    increment_subprocess_count();
     if (!(left = fork())) {
       execute_command(c->u.command[0], time_travel);
       exit(c->u.command[0]->status);
     }
     else {
       waitpid(left, &status, 0);
+      increment_subprocess_count();
       if (!(right = fork())) {
 	       execute_command(c->u.command[1], time_travel);
 	       exit(c->u.command[1]->status);
@@ -423,6 +431,7 @@ execute_command (command_t c, int time_travel)
       fprintf(stderr, "Pipe failed\n");
     }
     //fprintf(stderr, "finished pipe syscall\n");
+    increment_subprocess_count();
     if(!(left = fork()))
     {
       close(pipefd[0]);
@@ -436,6 +445,7 @@ execute_command (command_t c, int time_travel)
     else
     {
       int status = 0;
+      increment_subprocess_count();
       if(!(right = fork()))
       {
         close(pipefd[1]);
@@ -476,6 +486,7 @@ execute_command (command_t c, int time_travel)
   case AND_COMMAND: {
     //fprintf(stderr,"ANDCOMMAND\n");
     int left = 0, right = 0, status;
+    increment_subprocess_count();
     if(!(left = fork()))
     {
       execute_command(c->u.command[0], time_travel);  //TODO: flag part?
@@ -487,6 +498,7 @@ execute_command (command_t c, int time_travel)
       //fprintf(stderr,"status is: %i\n", status);
       if(!status) //if exit status is 0
       {
+	increment_subprocess_count();
        if(!(right = fork()))
         {
           execute_command(c->u.command[1], time_travel);
@@ -503,6 +515,7 @@ execute_command (command_t c, int time_travel)
   case OR_COMMAND: {
     //fprintf(stderr, "ORCOMMAND\n");
     int left = 0, right = 0, status;
+    increment_subprocess_count();
     if(!(left = fork()))
     {
       execute_command(c->u.command[0], time_travel);  //TODO: flag part?
@@ -514,6 +527,7 @@ execute_command (command_t c, int time_travel)
       //fprintf(stderr, "status is: %i\n", status);
       if(status) //if exit status is not 0
       {
+	increment_subprocess_count();
        if(!(right = fork()))
         {
           execute_command(c->u.command[1], time_travel);
